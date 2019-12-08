@@ -20,7 +20,6 @@
       - [类与类间关系](#类与类间关系)
       - [解释说明](#解释说明)
     - [使用方法](#使用方法)
-    - [代码示例](#代码示例)
   - [`Windows客户端` 服务器的设计](#windows客户端-服务器的设计)
   - [`Windows客户端` 设计](#windows客户端-设计)
   - [`Web客户端` 服务器设计](#web客户端-服务器设计)
@@ -45,11 +44,47 @@
 - 第二类以 `*Body` 的进行命名。主要就是具体的命令的特定的数据成员。因不同的结构体而异。
 ### 设计框图
 #### 类与类间关系
+![communicate](img/communicate.png)
 
 #### 解释说明
+本通讯协议由 `Header + Body` 模式进行传送。即每次通过先通过传送统一大小、统一格式内容的 `Header` 来告知接收者接下来要传递的包的种类和长度。然后在读取特定长度的包，进行信息的通知。
+
+上图展示了基本的使用方法和类内关系。
+>eg: 如果我们想要发送 `登陆请求`，需要先发送 `UniformHeader`,告知接收方下一个包是 `SigninBody`。
+
+类内的第一行是类（数据包）的名称。接下来的行指向的是数据成员，由 `名称：类型` 组成。
+> eg: SigninBody这个数据包由以下三个数据成员： 
+> - Username 用户名 `char[]`
+> - Password 密码 `char[]`
+> - Session 建立的会话 `char[]`
+
 ### 使用方法
 
-### 代码示例
+根据使用场景不同，将使用场景分为以下几种。
+- 登陆用户
+> 1. `UniformHeader` + `SigninBody`    `C->S`
+> 2. `UniformHeader` + `SigninresBody` `S->C`
+
+
+- 注册用户
+> 1. `UniformHeader` + `SignupBody` `C->S`
+> 2. `UniformHeader` + `SignupresBody` `S->C`		
+
+- 上传数据
+> 1. `UniformHeader` + `UploadReqBody` `C->S`
+> 2. `UniformHeader` + `UploadRespBody` `S->C`
+> 3. `UniformHeader` + `UploadFetchBody` `S->C`
+> 4. `UniformHeader` + `UploadPushBody` `C->S`
+
+- 下载数据
+> 1. `UniformHeader` + `DownloadReqBody` `C->S`
+> 2. `UniformHeader` + `DownloadRespBody` `S->C`
+> 3. `UniformHeader` + `DownloadPushBody` `S->C`
+
+- 显示文件夹内容
+> 1. `UniformHeader` + `SYNReqBody` `C->S`
+> 2. `UniformHeader` + `SYNRespBody` `S->C`
+> 3. `UniformHeader` + `SYNPushBody` `S->C`
 
 ## `Windows客户端` 服务器的设计
 
