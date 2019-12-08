@@ -24,12 +24,64 @@
 
 <!-- /code_chunk_output -->
 
-
 ## 总体架构图
+
+
+
+
+
+
+
+### server端和Windows客户端的架构图
+
+![ServerAndWindowsClient](./img/ServerAndWindowsClient.png)
 
 ## 数据库设计
 
+数据库总共有三张表，分别是Users ()用于存储用户信息，Files(用于存储文件信息)和FileIndex(用于存储文件索引)，下面是具体的表结构
+
+|     表名      | 字段名   | 数据类型     | 说明             |
+| :-----------: | -------- | ------------ | ---------------- |
+|   **Users**   | Uid      | int          | 用户编号         |
+|               | Uname    | varchar(32)  | 用户名           |
+|               | Password | varchar(32)  | 用户密码         |
+|   **Files**   | Uid      | int          | 文件所属用户编号 |
+|               | Filename | varchar(64)  | 文件名           |
+|               | Size     | int          | 文件大小(Byte)   |
+|               | Path     | varchar(128) | 文件的路径       |
+|               | Hash     | varchar(128) | 文件哈希码       |
+|               | Bitmap   | text(65535)  | 文件位示图       |
+|               | Modtime  | Datatime     | 文件修改时间     |
+| **FileIndex** | Hash     | varchar(128) | 文件的哈希码     |
+|               | Refcount | int          | 文件的引用次数   |
+|               |          |              |                  |
+
+其中,文件的位示图用来表示文件的哪些部分已经上传完毕了,一个字节表示1M,其中每一个1M都有三种状态分别是:已上传,未上传和正在上传,由于位示图大小最大未65535字节,所以本系统所能支持的最大单个上传文件的大小为64G.
+
 ## 储存方案设计
+
+为了适应断点续传以及多用户共同上传等功能,我们的网盘系统采用了分散式存储的方式
+
+首先,所有的文件都存在一个data文件夹下, 对于每一个文件都会有一个用其哈希码命名的文件夹,里面会按数字从小到大存放文件数据,其中1号文件存放第1M,2号存第2M,以此类推.
+
+文件系统的结构图如下
+
+data
+├─hashcode-of-file1
+│      1
+│      2
+│      3
+│      4
+│      5
+│      
+├─hashcode-of-file2
+│      1
+│      2
+│      3
+│      
+├─hashcode-of-file3
+└      1
+        
 
 ## 用户目录设计
 
@@ -102,6 +154,159 @@ sender模块负责与客户端的receiver模块通过TCP连接交互，完成下载任务。
 #### 解释说明
 
 从控制模块收到用户id和文件信息后，sender模块维护一个“socket-文件”表，表中建立socket和文件的单一映射关系，即每个socket对应一个文件，直到完成下载。客户端的receiver模块维护服务端receiver模块的位示图结构，当socket空闲时向服务端sender模块发送指定的接收块号。sender模块访问数据库获得文件标识，结合客户端发来的指定块号向文件读写模块发送读取请求。sender模块读到文件内容的同时向该客户端发送文件数据。
+
+### 操作数据库模块
+
+该模块主要功能是读写数据库,此模块对外使用管道与其他进程通信,在其内部维护一个数据库操作事件队列,一旦其他进程有新的操作数据库命令到达,将对应的事件插入到队列尾部,每次执行队列最前端的操作,直到整个队列为空. 该模块具体的伪代码实现如下
+
+```c
+//连接数据库
+init_mysql()
+//创建数据库事件队列
+init_mysql_event_queue();
+//初始化输入管道
+init_input_fifo()
+//初始化输出管道
+init_output_fifo()
+//为输入管道创建对应的epoll事件
+create_epoll_event();
+while(1)
+{
+	//监听其他进程向其发送命令的管道(阻塞)
+	count = epoll_wait(fifos);   
+    for(i=0;i<count;i++)
+    {	
+    	//若该管道有命令写入
+        if(fifos[i]==input)
+        {	
+        	//读出相应的命令
+        	read(cmd,sizeof(cmd));
+        	//将其插入事件队列的队尾
+        	event_queue.push(cmd);
+        }
+    }
+    //若事件队列不为空
+    if(!event_queue.empty())
+    {
+    	//取出事件队列的第一个元素
+    	 event_queue.pop(cmd);
+    	 //执行对应的操作数据库命令
+    	 result = do_cmd(cmd);
+    	 //将命令执行结果传回相应的模块
+    	 send(result,fifo);
+    }
+}
+```
+
+
+
+### 文件读写模块
+
+本模块的主要功能为读写所需文件,对外它通过管道和其他的模块进行通信,.  考虑到读写可以并行,所有又将这个模块划分为了读模块和写模块.下面是详细的设计
+
+* 读命令所用结构体
+
+```c
+struct FileReadCmd{
+	//文件哈希码,大小和数据库中对应
+    char hash[128];
+    //文件序号,表示读第几M
+    int seq;
+};
+```
+
+* 读模块
+
+```c
+//初始化输入管道
+init_input_fifo();
+//初始化输出管道
+init_output_fifo();
+//建立epoll事件
+init_epoll();
+while(1)
+{
+    //等待读命令到达
+    count = epoll_wait(events,NULL);
+    //从输入管道中读取命令
+    recv(input_fifo,cmd)；
+    //根据命令取出需要的数据
+    data = read_from_file(cmd);
+    //将数据发送给其他模块    
+    send(output_fifo,data);
+}
+```
+
+* 写命令所用结构体(命令后面跟文件数据)
+
+```c
+struct FileWriteCmd{
+	//文件哈希码,大小和数据库中对应
+    char hash[128];
+    //文件序号,表示写第几M
+    int seq;
+    //文件数据长度
+    int length;
+};
+```
+
+* 写模块
+
+```c
+//初始化输入管道
+init_input_fifo();
+//初始化输出管道
+init_output_fifo();
+//建立epoll事件
+init_epoll();
+while(1)
+{
+    //等待写命令到达
+    epoll_wait(events,NULL);
+    //读数据，上次可能还有残留数据，从后续位置开始读
+    len = recv(input_fifo,buf+buf_len,BUF_SIZE-buf_len,0)；
+    if(len<=0)
+    {
+        //错误处理
+    }
+    //更新读到的数据长度
+    buf_len += len;
+    bool hasCmd = false;
+    FileWriteCmd  cmd;
+    char *p = buf;
+    //处理缓冲区
+    while(buf_len >= sizeof(FileWriteCmd))
+    {
+        //还没有读到过命令且缓冲区中数据不到一个命令长度，退出
+    	if(buf_len < sizeof(FileWriteCmd) && !hasCmd)
+            break;
+        //若没有读到过命令且缓冲区中数据大于一个包长
+       	else if(buf_len < sizeof(FileWriteCmd))
+        {
+            hasCmd = 1;
+            //取得cmd
+            cmd = *(FileWriteCmd*)p;
+        }
+        //若读到了命令且数据大于等于一个包长，则将其写成文件，并将hasCmd置false
+        if(hasCmd && buf_len>=cmd.length)
+        {
+            hasCmd = 0;
+            //写文件
+            write_to_file(p+sizeof(FileWriteCmd),cmd);
+            //更新指针位置
+            p += sizeof(FileWriteCmd)+cmd.lenrth;
+            //更新缓冲区读入数据大小
+            buf_len -= sizeof(FileWriteCmd)+cmd.lenrth;
+        }   
+    }   
+    //若还有剩余数据，则移动到前面
+    if(buf_len>0)
+    {
+        memmove(buf,p,buf_len);
+    }
+}
+```
+
 
 ## `Windows客户端` 设计
 
