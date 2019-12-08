@@ -28,7 +28,7 @@
 
 
 
-
+![overall-framework](E:\同济大学学习文件\大三\计算机网络\week14\CloudDrive\report\img\overall-framework.png)
 
 
 
@@ -52,9 +52,11 @@
 |               | Hash     | varchar(128) | 文件哈希码       |
 |               | Bitmap   | text(65535)  | 文件位示图       |
 |               | Modtime  | Datatime     | 文件修改时间     |
+|               | Complete  | Tinyint     | 文件是否完整     |
 | **FileIndex** | Hash     | varchar(128) | 文件的哈希码     |
 |               | Refcount | int          | 文件的引用次数   |
 |               |          |              |                  |
+
 
 其中,文件的位示图用来表示文件的哪些部分已经上传完毕了,一个字节表示1M,其中每一个1M都有三种状态分别是:已上传,未上传和正在上传,由于位示图大小最大未65535字节,所以本系统所能支持的最大单个上传文件的大小为64G.
 
