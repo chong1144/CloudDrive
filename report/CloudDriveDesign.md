@@ -36,7 +36,7 @@
 
 
 
-![overall-framework](E:\同济大学学习文件\大三\计算机网络\week14\CloudDrive\report\img\overall-framework.png)
+![overall-framework](.\img\overall-framework.png)
 
 
 
