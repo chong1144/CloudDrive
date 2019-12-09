@@ -3,8 +3,8 @@
 
 enum SYNRespCodes
 {
-    SUCCESS,
-    UNEXIST_DIR,
+    SYN_SUCCESS,
+    SYN_UNEXIST_DIR,
 };
 
 struct SYNRespBody
