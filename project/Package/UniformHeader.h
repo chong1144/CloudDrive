@@ -24,6 +24,8 @@ enum PackageType
     SYN_RESP,        // 同步信号 回应同步结果 包括文件下的文件个数
     SYN_PUSH,        // 同步信号 发送一个目录下的信息
 
+    COPY,            // 拷贝文件
+    MOVE,            // 复制文件
     // MKDIR,          // 新建文件夹
 };
 
@@ -46,7 +48,10 @@ const static std::map<PackageType, uint16_t> PackageSizeMap{
 
     {PackageType::SYN_REQ, sizeof(SYNReqBody)},
     {PackageType::SYN_RESP, sizeof(SYNRespBody)},
-    {PackageType::SYN_PUSH, sizeof(SYNPushBody)}
+    {PackageType::SYN_PUSH, sizeof(SYNPushBody)},
+    
+    {PackageType::COPY, sizeof(CopyBody)},
+    {PackageType::MOVE, sizeof(MoveBody)},
 };
 
 // 统一的头包 每个指令发送前都要有的
