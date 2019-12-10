@@ -57,11 +57,12 @@
 |   **Files**   | Uid      | int          | 文件所属用户编号 |
 |               | Filename | varchar(64)  | 文件名           |
 |               | Size     | int          | 文件大小(Byte)   |
-|               | Path     | varchar(128) | 文件的路径       |
+|               | Dir     | varchar(128) | 文件所属文件夹名       |
 |               | Hash     | varchar(128) | 文件哈希码       |
 |               | Bitmap   | text(65535)  | 文件位示图       |
 |               | Modtime  | Datatime     | 文件修改时间     |
 |               | Complete  | Tinyint     | 文件是否完整     |
+|               | Isdir  | Tinyint     | 该表项是否为文件夹    |
 | **FileIndex** | Hash     | varchar(128) | 文件的哈希码     |
 |               | Refcount | int          | 文件的引用次数   |
 |               |          |              |                  |
