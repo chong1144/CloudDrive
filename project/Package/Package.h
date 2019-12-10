@@ -35,6 +35,6 @@ const uint16_t MD5Length = 64;
 
 #include "MoveBody.h"
 #include "CopyBody.h"
-
+#include "DeleteBody.h"
 
 #include "UniformHeader.h"
