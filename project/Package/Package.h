@@ -12,7 +12,7 @@ const uint16_t pathLength = 256;
 const uint16_t fileNameLength = 256;
 const uint16_t ChunkSize = 1024;
 const uint16_t nameLength = 256;
-
+const uint16_t MD5Length = 64;
 
 #include "SigninBody.h"
 #include "SigninresBody.h"
