@@ -3,9 +3,9 @@
 
 enum UploadRespCodes
 {
-    SUCCESS,
-    ALREADY_HAS,
-    TO_LARGE
+    UPLOAD_SUCCESS,
+    UPLOAD_ALREADY_HAS,
+    UPLOAD_TO_LARGE
 };
 
 struct UploadRespBody

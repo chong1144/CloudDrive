@@ -3,8 +3,8 @@
 
 enum DownloadRespCodes
 {
-    SUCCESS,
-    UNEXIST_FILE
+    DOWNLOAD_SUCCESS,
+    DOWNLOAD_UNEXIST_FILE
 };
 
 struct DownloadRespBody
