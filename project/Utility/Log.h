@@ -16,6 +16,7 @@ public:
     };
 
 public:
+    Log(){};
     Log(const char *path);
     Log(const string& path);
 	void init (const string& path);
