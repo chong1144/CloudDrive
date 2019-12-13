@@ -2,6 +2,7 @@
 #include <iostream>
 #include <fstream>
 #include <sys/timeb.h>
+#include <ctime>
 using std::endl;
 using std::ios;
 using std::to_string;
@@ -82,6 +83,6 @@ void Log::writeLog(Log::LoggingLevel level, std::string Content)
 
 	ftime (&tb);
 	out << Content;
-	out << ' ' << tb.time << '.' << tb.millitm << endl;
+	//out << ' ' << tb.time << '.' << tb.millitm << endl;
 
 }
