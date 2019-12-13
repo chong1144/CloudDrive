@@ -4,6 +4,7 @@
 #include "../Utility/Config.h"
 
 #include <string>
+#include 
 
 using MD5Code = char[MD5Length];
 using Content = char[ChunkSize];
