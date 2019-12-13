@@ -1,10 +1,11 @@
-#include "common.h"
+#include "Config.h"
 
 using std::cerr;
 using std::cout;
 using std::endl;
 using std::ifstream;
 using std::ios;
+using std::string;
 
 Config::Config(const string &configFile)
 {
