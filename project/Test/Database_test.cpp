@@ -63,7 +63,7 @@ int main()
         fifo_dtos=open(path_fifo_dtos.c_str(),O_RDONLY);
 
         //sleep(1);
-        test = DELETE_TEST;
+        test = ALL;
 
         if(test == SIGNUP_TEST || test == ALL)
         {
@@ -83,12 +83,17 @@ int main()
 
             read(fifo_dtoc,&header,sizeof(header));
             read(fifo_dtoc,&res_body,sizeof(res_body));
+            cout << "-------- SIGNUP TEST START------------"<<endl;
+
 
             cout<<"code:" <<res_body.code <<endl;
             cout<<"session:"<<res_body.Session <<endl;
+
+            cout << "-------- SIGNUP TEST END------------"<<endl;
+            cout <<endl;
         }
 
-        else if(test == SIGNIN_TEST || test == ALL)
+        if(test == SIGNIN_TEST || test == ALL)
         {
             UniformHeader header;
             header.len = sizeof(SigninBody);
@@ -97,7 +102,7 @@ int main()
             SigninBody body;
             SigninresBody res_body;
             strcpy(body.IP,"192.168.80.88");
-            strcpy(body.Password,"d9840773233fa6b19fde8caf765402f5");
+            strcpy(body.Password,"202CB962AC59075B964B07152D234B70");
             strcpy(body.Username,"test");
             
 
@@ -108,11 +113,17 @@ int main()
             read(fifo_dtoc,&header,sizeof(header));
             read(fifo_dtoc,&res_body,sizeof(res_body));
 
+            cout << "-------- SIGNIN TEST START------------"<<endl;
+
+
             cout<<"code:" <<res_body.code <<endl;
             cout<<"session:"<<res_body.Session <<endl;
+
+            cout << "-------- SIGNIN TEST END------------"<<endl;
+            cout<<endl;
         }
 
-        else if(test == UPLOAD_TEST || test == ALL)
+        if(test == UPLOAD_TEST || test == ALL)
         {
             UniformHeader header;
             header.len = sizeof(UploadReqBody);
@@ -125,21 +136,64 @@ int main()
             body.isDir = 1;
             strcpy(body.MD5,"");
             strcpy(body.path,"/");
-            strcpy(body.Session,"4");
+            strcpy(body.Session,"2");
+
             
+            
+            write(fifo_ctod,&header,sizeof(header));
+            write(fifo_ctod,&body,sizeof(body));
+            
+
+            strcpy(body.fileName,"first_file");
+            body.fileSize = 1024;
+            body.isDir = 0;
+            strcpy(body.MD5,"bf083d4ab960620b645557217dd59a49");
+            strcpy(body.path,"/");
+            strcpy(body.Session,"2");
+
 
             write(fifo_ctod,&header,sizeof(header));
             write(fifo_ctod,&body,sizeof(body));
 
+
+            strcpy(body.fileName,"second_file");
+            body.fileSize = 10000;
+            body.isDir = 0;
+            strcpy(body.MD5,"cb42e130d1471239a27fca6228094f0e");
+            strcpy(body.path,"/");
+            strcpy(body.Session,"2");
+
+
+            write(fifo_ctod,&header,sizeof(header));
+            write(fifo_ctod,&body,sizeof(body));
+
+
+            cout << "-------- UPLOAD TEST START------------"<<endl;
 
             read(fifo_dtoc,&header,sizeof(header));
             read(fifo_dtoc,&res_body,sizeof(res_body));
 
             cout<<"code:" <<res_body.code <<endl;
             cout<<"session:"<<res_body.Session <<endl;
+
+            read(fifo_dtoc,&header,sizeof(header));
+            read(fifo_dtoc,&res_body,sizeof(res_body));
+
+            cout<<"code:" <<res_body.code <<endl;
+            cout<<"session:"<<res_body.Session <<endl;
+
+            read(fifo_dtoc,&header,sizeof(header));
+            read(fifo_dtoc,&res_body,sizeof(res_body));
+
+            cout<<"code:" <<res_body.code <<endl;
+            cout<<"session:"<<res_body.Session <<endl;
+
+            cout << "-------- UPLOAD TEST END------------"<<endl;
+            cout <<endl;
+
         }
         
-        else if(test == SYN_TEST || test == ALL)
+        if(test == SYN_TEST || test == ALL)
         {
             UniformHeader header;
             header.len = sizeof(SYNReqBody);
@@ -148,7 +202,7 @@ int main()
             SYNReqBody body;
             SYNRespBody res_body;
             strcpy(body.path,"/");
-            strcpy(body.Session,"4");
+            strcpy(body.Session,"2");
             
 
             write(fifo_ctod,&header,sizeof(header));
@@ -158,13 +212,19 @@ int main()
             read(fifo_dtoc,&header,sizeof(header));
             read(fifo_dtoc,&res_body,sizeof(res_body));
 
+            cout << "-------- SYN TEST START------------"<<endl;
+
+
             cout<<"code:" <<res_body.code <<endl;
             cout<<"session:"<<res_body.Session <<endl;
             cout <<"childnum:"<<res_body.childNum <<endl;
             cout <<"externalinfo:" <<res_body.ExternInformation <<endl;
+
+            cout << "-------- SYN TEST START------------"<<endl;
+            cout<<endl;
         }
 
-        else if(test == MOVE_TEST || test == ALL)
+        if(test == MOVE_TEST || test == ALL)
         {
             UniformHeader header;
             header.len = sizeof(MoveBody);
@@ -172,11 +232,11 @@ int main()
 
             MoveBody body;
             MoveRespBody res_body;
-            strcpy(body.fileName,"my_first_file");
-            strcpy(body.fileNameTo,"my_first_file");
+            strcpy(body.fileName,"first_file");
+            strcpy(body.fileNameTo,"first_file");
             strcpy(body.path,"/");
             strcpy(body.pathTo,"/first_dir");
-            strcpy(body.Session,"4");
+            strcpy(body.Session,"2");
             
 
             write(fifo_ctod,&header,sizeof(header));
@@ -185,13 +245,17 @@ int main()
 
             read(fifo_dtoc,&header,sizeof(header));
             read(fifo_dtoc,&res_body,sizeof(res_body));
+            cout << "-------- MOVE TEST START------------"<<endl;
+
 
             cout<<"code:" <<res_body.code <<endl;
             cout<<"session:"<<res_body.Session <<endl;
+            cout << "-------- MOVE TEST END------------"<<endl;
+            cout<<endl;
         
         }
 
-        else if(test == COPY_TEST || test == ALL)
+        if(test == COPY_TEST || test == ALL)
         {
             UniformHeader header;
             header.len = sizeof(CopyBody);
@@ -199,11 +263,11 @@ int main()
 
             CopyBody body;
             CopyRespBody res_body;
-            strcpy(body.fileName,"my_second_file");
-            strcpy(body.fileNameTo,"my_second_file.bak");
+            strcpy(body.fileName,"second_file");
+            strcpy(body.fileNameTo,"second_file.bak");
             strcpy(body.path,"/");
             strcpy(body.pathTo,"/");
-            strcpy(body.Session,"4");
+            strcpy(body.Session,"2");
             
 
             write(fifo_ctod,&header,sizeof(header));
@@ -212,13 +276,18 @@ int main()
 
             read(fifo_dtoc,&header,sizeof(header));
             read(fifo_dtoc,&res_body,sizeof(res_body));
+            cout << "-------- COPY TEST START------------"<<endl;
+
 
             cout<<"code:" <<res_body.code <<endl;
             cout<<"session:"<<res_body.Session <<endl;
+
+            cout << "-------- COPY TEST END------------"<<endl;
+            cout <<endl;
         
         }
 
-        else if(test == DELETE_TEST || test == ALL)
+        if(test == DELETE_TEST || test == ALL)
         {
             UniformHeader header;
             header.len = sizeof(DeleteBody);
@@ -226,11 +295,11 @@ int main()
 
             DeleteBody body;
             DeleteRespBody res_body;
-            strcpy(body.fileName,"my_second_file.bak");
+            strcpy(body.fileName,"second_file.bak");
             
             strcpy(body.path,"/");
            
-            strcpy(body.Session,"4");
+            strcpy(body.Session,"2");
             
 
             write(fifo_ctod,&header,sizeof(header));
@@ -240,8 +309,14 @@ int main()
             read(fifo_dtoc,&header,sizeof(header));
             read(fifo_dtoc,&res_body,sizeof(res_body));
 
+            cout << "-------- DELETE TEST START------------"<<endl;
+
+
             cout<<"code:" <<res_body.code <<endl;
             cout<<"session:"<<res_body.Session <<endl;
+
+            cout << "-------- DELETE TEST START------------"<<endl;
+            cout << endl;
         
         }
        

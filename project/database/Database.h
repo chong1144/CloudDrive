@@ -81,7 +81,7 @@ string generate_timestamp()
     time_t tmNow = time(NULL);
     string t;
     tm *now = localtime(&tmNow);
-    t = std::to_string(now->tm_year+1900)+"-"+std::to_string(now->tm_mon)+"-"+std::to_string(now->tm_mday)+" "
+    t = std::to_string(now->tm_year+1900)+"-"+std::to_string(now->tm_mon+1)+"-"+std::to_string(now->tm_mday)+" "
     +std::to_string(now->tm_hour)+":"+std::to_string(now->tm_min)+":"+std::to_string(now->tm_sec);
 
     return generate_string(t);
@@ -270,7 +270,7 @@ int Database::Users_Insert(string Username,string Password, string IP)
 {
     //数据顺序 Uname,Password,IP,Lastlogintime,Createtime
     string cmd = string("insert into Users values(")+"NULL," +generate_string(Username) +","+generate_string(MD5(Password.c_str()))+","+generate_string(IP)+","+generate_timestamp()+","+generate_timestamp() +");";
-    cout <<cmd<<endl;
+    //cout <<cmd<<endl;
     if (mysql_query(mysql, cmd.c_str()))
     {
         log.writeLog(Log::ERROR,string("mysql_query failed(")+string(mysql_error(mysql))+string(")"));
@@ -380,13 +380,15 @@ int Database::Files_Delete(string Uid,string Filename,string path)
     "Filename="+generate_string(Filename)+" and "+\
     "Path="+generate_string(path)+";";
 
+    FileIndex_Refdec(Files_Get_Hash(Uid,Filename,path));
+
     if (mysql_query(mysql, cmd.c_str()))
     {
         log.writeLog(Log::ERROR,string("mysql_query failed(")+string(mysql_error(mysql))+string(")"));
         return 0;
     }
 
-    FileIndex_Refdec(Files_Get_Hash(Uid,Filename,path));
+    
     return 1;
 
 }
@@ -782,7 +784,7 @@ int Database::do_mysql_cmd(UniformHeader h)
         {
             if(MD5(body->Password)!= user_pwd)
             {
-                cout << MD5(body->Password)<<endl;
+                //cout << MD5(body->Password)<<endl;
                 res->code = SIGNIN_INCORRECT_PASSWORD;
                 log.writeLog(Log::INFO,"[Login Failed] INCORRECT_PASSWORD");
             }
@@ -837,7 +839,7 @@ int Database::do_mysql_cmd(UniformHeader h)
             res->code = SIGNUP_SUCCESS;
 
             uid_pwd = get_uid_pwd_by_uname(body->Username);
-            cout<<uid_pwd.first<<" "<<uid_pwd.second<<endl;
+            //cout<<uid_pwd.first<<" "<<uid_pwd.second<<endl;
             //给session赋值
             strcpy(res->Session,uid_pwd.first.c_str());
 
