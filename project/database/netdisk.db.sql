@@ -41,5 +41,5 @@ values(null,"root","ff9830c42660c1dd1942844f8069b74a","127.0.0.1",now(),now());
 
 insert into Files values(1,"test.txt","/","ba1f2511fc30423bdbb183fe33f3dd0f",now(),0);
 
-insert into FileIndex values("ba1f2511fc30423bdbb183fe33f3dd0f",100,0,"0",0);
+insert into FileIndex values("ba1f2511fc30423bdbb183fe33f3dd0f",100,1,"0",0);
 

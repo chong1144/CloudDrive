@@ -146,14 +146,14 @@ public:
 
     
     bool Files_Isdir(string Uid,string Filename,string path );
-    pair<int,string> Files_Get_Size_Hash(string Uid,string Filename,string path);
-    int Files_Insert(string Uid,string Filename,int size,string path,string hash,bool Isdir);
+    string Files_Get_Hash(string Uid,string Filename,string path);
+    int Files_Insert(string Uid,string Filename,string path,string hash,bool Isdir);
     int Files_Move(string Uid,string Filename,string path,string FilenameTo ,string pathTo);
     int Files_Copy(string Uid,string Filename,string path,string FilenameTo ,string pathTo);
     int Files_Delete(string Uid,string Filename,string path);
     vector<pair<string,string>>get_child_files(string Uid,string path);
 
-    int FileIndex_Insert(string hash);
+    int FileIndex_Insert(string hash,int size);
     bool file_exist(string hashCode);
     int FileIndex_Delete(string hash);
     pair<int,int> FileIndex_Get_Ref_Complete(string hash);
@@ -191,7 +191,8 @@ Database::Database(string config_file,string log_file) : config(config_file), lo
         cout << "mysql_real_connect failed(" << mysql_error(mysql) << ")" << endl;
         exit(-1);
     }
-    cout << "mysql connect sucessful" << endl;
+    //cout << "mysql connect sucessful" << endl;
+    log.writeLog(Log::INFO,"mysql connect sucessful");
 
     /* 设置字符集，否则读出的字符乱码，即使/etc/my.cnf中设置也不行 */
     mysql_set_character_set(mysql, "gbk");
@@ -209,7 +210,8 @@ Database::Database(string config_file,string log_file) : config(config_file), lo
         cout << "open fifo error" << endl;
         exit(-1);
     }
-    cout << "open fifo success"<<endl;
+    //cout << "open fifo success"<<endl;
+    log.writeLog(Log::INFO,"open fifo success");
 }
 
 //disconnect from database
@@ -324,9 +326,9 @@ bool Database::Files_Isdir(string Uid,string Filename,string path)
     }
 }
 
-pair<int,string> Database::Files_Get_Size_Hash(string Uid,string Filename,string path)
+string Database::Files_Get_Hash(string Uid,string Filename,string path)
 {
-    string cmd = "select Size,Hash from Files where Uid="+ \
+    string cmd = "select Hash from Files where Uid="+ \
     generate_string(Uid)+" and "+\
     "Filename="+generate_string(Filename)+" and "+\
     "Path="+generate_string(path)+";";
@@ -344,20 +346,19 @@ pair<int,string> Database::Files_Get_Size_Hash(string Uid,string Filename,string
     // 若找不到文件
     if((row = mysql_fetch_row(result)) == NULL)
     {
-        return std::make_pair(0,"NULL");
+        return "NULL";
     }
     else
     {
-        return std::make_pair(atoi(row[0]),string(row[1]));
+        return string(row[0]);
     }
 }
 
-int Database::Files_Insert(string Uid,string Filename,int size,string path,string hash,bool Isdir)
+int Database::Files_Insert(string Uid,string Filename,string path,string hash,bool Isdir)
 {
     string cmd = "insert into Files values(" + \
         string(Uid)+","+  \
         generate_string(Filename)+","+  \
-        to_string(size)+","+ \
         generate_string(path)+","+                \
         generate_string(hash)+","+  \
         generate_timestamp()+","+
@@ -384,27 +385,31 @@ int Database::Files_Delete(string Uid,string Filename,string path)
         log.writeLog(Log::ERROR,string("mysql_query failed(")+string(mysql_error(mysql))+string(")"));
         return 0;
     }
+
+    FileIndex_Refdec(Files_Get_Hash(Uid,Filename,path));
     return 1;
 
 }
 
 int Database::Files_Copy(string Uid,string Filename,string path,string FilenameTo ,string pathTo)
 {
-    pair<int,string> size_hash;
+    string hash;
 
-    size_hash = Files_Get_Size_Hash(Uid,Filename,path);
+    hash = Files_Get_Hash(Uid,Filename,path);
     bool isDir = Files_Isdir(Uid,Filename,path);
 
-    return Files_Insert(Uid,FilenameTo,size_hash.first,pathTo,size_hash.second,isDir);
+    FileIndex_Refinc(hash);
+
+    return Files_Insert(Uid,FilenameTo,pathTo,hash,isDir);
 
 }
 
 int Database::Files_Move(string Uid,string Filename,string path,string FilenameTo ,string pathTo)
 {
-    string cmd = string("update Files set")
-    +"Filename="+generate_string(FilenameTo)+","\
+    string cmd = string("update Files set ")
+    +" Filename="+generate_string(FilenameTo)+","\
     + "Path="+generate_string(pathTo)
-    +" where"+ \
+    +" where "+ \
     "Uid="+generate_string(Uid)+" and "+\
     "Filename="+generate_string(Filename)+" and "+\
     "Path="+generate_string(path)+";";
@@ -476,16 +481,21 @@ bool Database::file_exist(string hashCode)
     return true;
 } 
 
-int Database::FileIndex_Insert(string hash)
+int Database::FileIndex_Insert(string hash,int size)
 {
     char bitmap[BITMAP_SIZE] ;
-    memset(bitmap,'0',sizeof(bitmap));
-    string cmd = "inster into FileIndex values("+ \
+    memset(bitmap,0,sizeof(bitmap));
+
+    memset(bitmap,'0',size/1024+1 - (size%1024==0));
+    
+    string cmd = "insert into FileIndex values("+ \
     generate_string(hash)+","+   \
+    to_string(size)+","+\
     "1"+","+    \
-    generate_string(bitmap)+
+    generate_string(bitmap)+","+
     "0"+");";
 
+    //cout <<cmd <<endl;
     //更新FileIndex表
     if (mysql_query(mysql, cmd.c_str()))
     {
@@ -643,21 +653,22 @@ int Database::Run()
 
     
 
-    cout << "epoll events create success" <<endl;
+    //cout << "epoll events create success" <<endl;
+    log.writeLog(Log::INFO,"epoll events create success");
 
     UniformHeader header;
 
     while (1)
     {
         //监听其他进程向其发送命令的管道(阻塞)
-        cout<<"epoll waiting ..."<<endl;
+        //cout<<"epoll waiting ..."<<endl;
         int count = epoll_wait(epfd, events, MAXEVENTS, -1);
         if (count == -1)
         {
             perror("epoll wait error");
             exit(-1);
         }
-        cout << "epoll count:" <<count <<endl;
+        //cout << "epoll count:" <<count <<endl;
         for (int i = 0; i < count; i++)
         {
 
@@ -672,7 +683,7 @@ int Database::Run()
                     log.writeLog(Log::ERROR, string("fifo closed ")+to_string(events[i].data.fd));
                     exit(-1);
                 }
-                cout << header.p << " "<<header.len<<endl;
+                //cout << header.p << " "<<header.len<<endl;
 
                 //申请相应大小的空间
                 void *temp = new char[header.len];
@@ -714,7 +725,7 @@ int Database::Run()
             
             //取出结果队列第一个元素
             header = res_header_queue.front();
-            cout << header.p<<" "<<header.len <<endl;
+            //cout << header.p<<" "<<header.len <<endl;
             //清除队首元素
             res_header_queue.pop();
 
@@ -861,7 +872,7 @@ int Database::do_mysql_cmd(UniformHeader h)
         res_header.p = PackageType::UPLOAD_RESP;
         res_header_queue.push(res_header);
 
-        log.writeLog(Log::INFO, "[Upload Req] Uid:"+string(body->Session)+" FileName:"+string(body->fileName)+" Filesize:"+to_string(body->fileSize)+" Path:"+string(body->path)+" Isdir:"+to_string(body->isDir));
+        log.writeLog(Log::INFO, "[Upload Req] Uid:"+string(body->Session)+", FileName:"+string(body->fileName)+", Filesize:"+to_string(body->fileSize)+", Path:"+string(body->path)+", Isdir:"+to_string(body->isDir));
 
 
          //生成返回包的身
@@ -873,16 +884,16 @@ int Database::do_mysql_cmd(UniformHeader h)
         {
             FileIndex_Refinc(body->MD5);
             res->code = UPLOAD_ALREADY_HAS;
-            log.writeLog(Log::INFO,"[Upload Req Failed] ALREADY_HAS");
+            log.writeLog(Log::INFO,"[Upload Req Success] ALREADY_HAS");
         } 
         else
         {
-            Files_Insert(body->Session,body->fileName,body->fileSize,body->path,body->MD5,body->isDir);
-            FileIndex_Insert(body->MD5);
+            if(!body->isDir)
+                FileIndex_Insert(body->MD5,body->fileSize);
             res->code = UPLOAD_SUCCESS;
             log.writeLog(Log::INFO,"[Upload Req Success]");
         }
-        
+        Files_Insert(body->Session,body->fileName,body->path,body->MD5,body->isDir);
 
     
         //将包加入写队列 
@@ -897,12 +908,14 @@ int Database::do_mysql_cmd(UniformHeader h)
         SYNReqBody *body = (SYNReqBody *)cmd_queue.front(); 
         //生成返回包的头
         res_header.len = sizeof(SYNRespBody);
-        res_header.p = PackageType::UPLOAD_RESP;
+        res_header.p = PackageType::SYN_RESP;
         res_header_queue.push(res_header);
 
          //生成返回包的身
         SYNRespBody *res = new SYNRespBody[1];
         strcpy(res->Session,body->Session);
+
+        log.writeLog(Log::INFO, "[SYN Req] Uid:"+string(body->Session)+", path:"+string(body->path));
 
         //获取路径下的子文件和文件夹 结果放在ExternInformation中，存放格式为： 文件/文件夹名,是否为文件夹 空格 文件/文件夹名,是否为文件夹 .....
         vector<pair<string,string>> children;
@@ -922,6 +935,7 @@ int Database::do_mysql_cmd(UniformHeader h)
         }
         strcpy(res->ExternInformation,temp.c_str());
         res->code = SYN_SUCCESS;
+        log.writeLog(Log::INFO,"[SYN Req Success]");
         //将包加入写队列
         res_queue.push(res);
     }
@@ -940,11 +954,20 @@ int Database::do_mysql_cmd(UniformHeader h)
         CopyRespBody *res = new CopyRespBody[1];
         strcpy(res->Session,body->Session);
 
-        Files_Copy(body->Session,body->fileName,body->path,body->fileNameTo,body->pathTo);
-        
-        res->code = COPY_SUCCESS;
+        log.writeLog(Log::INFO, "[COPY Req] Uid:"+string(body->Session)+", filename:"+string(body->fileName)+", path:"+string(body->path)+", filenameTo:"+string(body->fileNameTo)+", pathTo:"+string(body->pathTo));
 
-       
+
+        if(Files_Copy(body->Session,body->fileName,body->path,body->fileNameTo,body->pathTo))
+        {
+            res->code = COPY_SUCCESS;
+            log.writeLog(Log::INFO,"[COPY Success]");
+        }
+        else
+        {
+            res->code = COPY_FAILED;
+            log.writeLog(Log::WARNING,"[COPY Failed]");
+        }
+        
         //将包加入写队列 
         res_queue.push(res);
 
@@ -960,14 +983,25 @@ int Database::do_mysql_cmd(UniformHeader h)
         res_header.p = PackageType::MOVE_RES;
         res_header_queue.push(res_header);
 
+
+
          //生成返回包的身
         MoveRespBody *res = new MoveRespBody[1];
         strcpy(res->Session,body->Session);
 
-        Files_Move(body->Session,body->fileName,body->path,body->fileNameTo,body->pathTo);
-        
-        res->code = MOVE_SUCCESS;
+        log.writeLog(Log::INFO, "[MOVE Req] Uid:"+string(body->Session)+", filename:"+string(body->fileName)+", path:"+string(body->path)+", filenameTo:"+string(body->fileNameTo)+", pathTo:"+string(body->pathTo));
 
+
+        if(Files_Move(body->Session,body->fileName,body->path,body->fileNameTo,body->pathTo))
+        {
+            res->code = MOVE_SUCCESS;
+            log.writeLog(Log::INFO, "[MOVE Success]");
+        }
+        else
+        {
+            res->code = MOVE_FAILED;
+            log.writeLog(Log::WARNING, "[MOVE Failed]");
+        }
         
         //将包加入写队列 
         res_queue.push(res);
@@ -988,9 +1022,22 @@ int Database::do_mysql_cmd(UniformHeader h)
         DeleteRespBody *res = new DeleteRespBody[1];
         strcpy(res->Session,body->Session);
 
-        Files_Delete(body->Session,body->fileName,body->path);
+        log.writeLog(Log::INFO, "[DELETE Req] Uid:"+string(body->Session)+", filename:"+string(body->fileName)+", path:"+string(body->path));
+
+
+        if(Files_Delete(body->Session,body->fileName,body->path))
+        {
+            
+            res->code = DELETE_SUCCESS;
+            log.writeLog(Log::INFO,"[DELETE Success]");
+        }
+        else
+        {
+            res->code = DELETE_FAILED;
+            log.writeLog(Log::WARNING,"[DELETE Failed]");
+        }
+                
         
-        res->code = DELETE_SUCCESS;
 
         
         //将包加入写队列 
