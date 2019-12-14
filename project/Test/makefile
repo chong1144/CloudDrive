@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -I. -std=c++11 -I../common/ -lcrypto -lmysqlclient -L/usr/lib64/mysql
+CXXFLAGS = -I. -std=c++11 -I../common/ -lcrypto -lmysqlclient -L/usr/lib64/mysql 
 DEPS = $(wildcard  ../Utility/*.cpp )
 SRCS = $(wildcard *.cpp)
 OBJ = $(patsubst %.cpp,%.o,$(SRCS))
