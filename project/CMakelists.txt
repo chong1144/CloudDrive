@@ -4,6 +4,7 @@ project(CloudDrive)
 add_executable(Top Top.cpp)
 
 add_subdirectory(Utility)
+add_subdirectory(filesystem)
 
-target_link_libraries(Top Utility)
+target_link_libraries(Top Utility filesystem)
 
