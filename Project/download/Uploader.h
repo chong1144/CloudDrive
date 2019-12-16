@@ -22,6 +22,8 @@ using std::to_string;
 using size_t = uint64_t;
 using pType = PackageType;
 const size_t headlen = sizeof (UniformHeader);
+using std::queue;
+const int MAXEVENTS = 20;
 
 
 
@@ -53,6 +55,7 @@ class Uploader
 	int fifo_readfile_w;
 	int fifo_readfile_r;
 
+
 	UniformHeader head;
 	UploadReqBody req;
 	UploadRespBody resp;
@@ -60,7 +63,8 @@ class Uploader
 	UploadPushBody push;
 	Log fileLog;
 public:
-	int sendReqtoDB (fileHash hashcode)
+	// 向DB模块发送获取文件信息的请求
+	int sendReqFileInfotoDB (fileHash hashcode)
 	{
 
 	};
@@ -124,8 +128,21 @@ public:
 		}
 	}
 
-
 	// 是
+	int run ()
+	{
+		int epfd = epoll_create1 (0);
+		if (epfd == -1) {
+			fileLog.writeLog (Log::ERROR, string ("in run: epoll_create1 error") + strerror (errno));
+			exit (-1);
+		}
+		epoll_event ep_events[MAXEVENTS];
+
+
+
+
+	}
+
 
 };
 
