@@ -16,3 +16,9 @@ project/.vs/CloudDrive/v16/.suo
 *.user
 *.cache
 project/Log/*
+
+project/filesystem/data/*
+project/filesystem/FileSystem
+
+*/*/build/*
+*/build/*
