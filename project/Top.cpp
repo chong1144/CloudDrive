@@ -8,5 +8,6 @@ int main(int argc, char const *argv[])
 
     Log l("../Log/test.log");
 
+    l.writeLog(l.ERROR, "Nothing");
     return 0;
 }
