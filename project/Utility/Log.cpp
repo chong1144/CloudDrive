@@ -48,7 +48,7 @@ Log::~Log()
 }
 
 
-void Log::writeLog(Log::LoggingLevel level, std::string Content)
+void Log::writeLog(const Log::LoggingLevel &level, const std::string &Content)
 {
 
 #ifdef DEBUG
