@@ -10,6 +10,6 @@ enum MoveRespCodes
 
 struct MoveRespBody
 {
-    MoveRespCodes code;
     char Session[SessionLength];
+    MoveRespCodes code;
 };

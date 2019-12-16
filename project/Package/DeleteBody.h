@@ -3,7 +3,7 @@
 
 struct DeleteBody
 {
+    char Session[SessionLength];
     char fileName[fileNameLength];
     char path[pathLength];
-    char Session[SessionLength];
 };

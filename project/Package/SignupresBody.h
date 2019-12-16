@@ -12,7 +12,6 @@ enum SignupCodes
 
 struct SignupresBody
 {
-    SignupCodes code;
     char Session[SessionLength];
-    char ExternInformation[ExternInformationLength];
+    SignupCodes code;
 };

@@ -3,6 +3,6 @@
 
 struct SYNReqBody
 {
-    char path[pathLength];
     char Session[SessionLength];
+    char path[pathLength];
 };

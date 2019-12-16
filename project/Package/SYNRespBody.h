@@ -9,8 +9,7 @@ enum SYNRespCodes
 
 struct SYNRespBody
 {
+    char Session[SessionLength];
     SYNRespCodes code;
     uint16_t childNum;
-    char Session[SessionLength];
-    char ExternInformation[ExternInformationLength];
 };

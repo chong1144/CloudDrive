@@ -10,6 +10,6 @@ enum CopyRespCodes
 
 struct CopyRespBody
 {
-    CopyRespCodes code;
     char Session[SessionLength];
+    CopyRespCodes code;
 };

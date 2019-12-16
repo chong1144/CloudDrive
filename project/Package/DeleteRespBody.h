@@ -10,6 +10,6 @@ enum DeleteRespCodes
 
 struct DeleteRespBody
 {
-    DeleteRespCodes code;
     char Session[SessionLength];
+    DeleteRespCodes code;
 };

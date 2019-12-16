@@ -11,7 +11,6 @@ enum SigninCodes
 
 struct SigninresBody
 {
-    SigninCodes code;
     char Session[SessionLength];
-    char ExternInformation[ExternInformationLength];
+    SigninCodes code;
 };
