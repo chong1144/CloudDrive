@@ -6,7 +6,7 @@ FileOperations::FileOperations(const string &ConfigFile)
 
     prefixPos = c.getValue("WriteRead", "prefix");
 
-    l.init(fileSystemLogPosition);
+    l.init(c.getValue("WriteRead", "fileSystemLogPosition"));
 }
 
 FileOperations::~FileOperations()

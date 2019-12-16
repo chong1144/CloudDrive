@@ -25,7 +25,6 @@ enum FileStatusCodes
     MKDIR_SUCCESS = 2
 };
 
-const string fileSystemLogPosition = "../Log/filesystem.log";
 
 class FileOperations
 {
