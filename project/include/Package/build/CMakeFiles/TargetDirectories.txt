@@ -1,0 +1,3 @@
+/mnt/d/w1752132/Week10/CloudDrive/project/Package/build/CMakeFiles/rebuild_cache.dir
+/mnt/d/w1752132/Week10/CloudDrive/project/Package/build/CMakeFiles/Package.dir
+/mnt/d/w1752132/Week10/CloudDrive/project/Package/build/CMakeFiles/edit_cache.dir
