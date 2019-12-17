@@ -1,7 +1,0 @@
-/mnt/d/w1752132/Week10/CloudDrive/project/src/Utility/build/CMakeFiles/install/strip.dir
-/mnt/d/w1752132/Week10/CloudDrive/project/src/Utility/build/CMakeFiles/edit_cache.dir
-/mnt/d/w1752132/Week10/CloudDrive/project/src/Utility/build/CMakeFiles/Utility.dir
-/mnt/d/w1752132/Week10/CloudDrive/project/src/Utility/build/CMakeFiles/rebuild_cache.dir
-/mnt/d/w1752132/Week10/CloudDrive/project/src/Utility/build/CMakeFiles/list_install_components.dir
-/mnt/d/w1752132/Week10/CloudDrive/project/src/Utility/build/CMakeFiles/install/local.dir
-/mnt/d/w1752132/Week10/CloudDrive/project/src/Utility/build/CMakeFiles/install.dir

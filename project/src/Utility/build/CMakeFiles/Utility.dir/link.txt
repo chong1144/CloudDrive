@@ -1,1 +1,0 @@
-/usr/bin/c++ -fPIC   -shared -Wl,-soname,libUtility.so -o libUtility.so CMakeFiles/Utility.dir/Config.cpp.o CMakeFiles/Utility.dir/Log.cpp.o 
