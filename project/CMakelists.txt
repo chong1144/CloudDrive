@@ -5,6 +5,7 @@ add_executable(Top Top.cpp)
 
 add_subdirectory(Utility)
 add_subdirectory(filesystem)
+add_subdirectory(Control)
 
-target_link_libraries(Top Utility filesystem)
+target_link_libraries(Top Utility filesystem Control)
 
