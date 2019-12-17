@@ -250,6 +250,7 @@ void control::waitForClient()
                 }
 
                 // ´«¸ø Client ¶Ë
+                write(sS.at(Session), &u, sizeof(u));
                 write(sS.at(Session), packet, u.len);
             }
             else if (candidateSockEvents & EPOLLIN)
