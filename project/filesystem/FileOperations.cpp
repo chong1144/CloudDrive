@@ -26,7 +26,7 @@ FileStatusCodes FileOperations::IsExists(const MD5Code &md5)
     dirent *entry;
     while ((entry = readdir(fp)))
     {
-        if (!strcmp(entry->d_name, md5))
+		if (!strncmp (entry->d_name, md5, 32))
             return FILE_EXISTS;
     }
 
@@ -46,7 +46,12 @@ FileStatusCodes FileOperations::Mkdir(const MD5Code &md5)
     return MKDIR_SUCCESS;
 }
 
-uint16_t FileOperations::WriteFile(const MD5Code &md5, const UploadPushBody &packet)
+
+/*
+* Note：如果该文件夹不存在则新建文件夹
+* 路径：md5/packet.id
+*/
+int FileOperations::WriteFile(const MD5Code &md5, const UploadPushBody &packet)
 {
     // 如果该文件夹不存在则新建文件夹
     if (this->IsExists(md5) == FILE_UNEXISTS)
@@ -77,7 +82,41 @@ uint16_t FileOperations::WriteFile(const MD5Code &md5, const UploadPushBody &pac
     return packet.len;
 }
 
-uint16_t FileOperations::ReadFile(const MD5Code &md5, const uint16_t &id, DownloadPushBody &packet)
+int FileOperations::WriteFile (const FileChunk& filechunk)
+{ 
+    // 如果该文件夹不存在则新建文件夹
+    if (this->IsExists (filechunk.md5) == FILE_UNEXISTS) {
+        l.writeLog (Log::INFO, string ("MKDIR_FAIL"));
+		if (this->Mkdir (filechunk.md5) == MKDIR_FAIL) {
+            // safety gaurdence
+            l.writeLog (Log::ERROR, string ("MKDIR_FAIL EXIT!!!"));
+            exit (-1);
+        }
+    }
+
+    // 写入文件的位置
+    const string filePath = this->prefixPos + string (filechunk.md5) + "/" + std::to_string (filechunk.chunkNo);
+    ofstream fout (filePath.c_str (), ios::out | ios::binary);
+    if (!fout.is_open ()) {
+        string ErrorContent = "Fail to open " + filePath;
+        l.writeLog (Log::ERROR, ErrorContent);
+        return WRITE_FAIL;
+    }
+
+    fout.write (filechunk.content, filechunk.size);
+    fout.close ();
+
+    string InfoContent = "Write " + filePath + " successfully!";
+    l.writeLog (Log::INFO, InfoContent);
+    return filechunk.size;
+}
+
+
+/*
+* 
+* 
+*/
+int FileOperations::ReadFile(const MD5Code &md5, const uint16_t &id, DownloadPushBody &packet)
 {
     // 未能找到相应文件
     if(this->IsExists(md5) == FILE_UNEXISTS)

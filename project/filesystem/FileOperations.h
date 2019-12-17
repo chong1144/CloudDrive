@@ -8,13 +8,21 @@
 #include <dirent.h>
 #include <fstream>
 #include <sys/stat.h>
-
+#include <memory>
 using MD5Code = char[MD5Length];
 using Content = char[ChunkSize];
 using std::ifstream;
 using std::ios;
 using std::ofstream;
 using std::string;
+using std::unique_ptr;
+struct FileChunk
+{
+    char md5[64];
+    uint16_t chunkNo;
+    int size;
+    char content[1024 * 1024];
+};
 
 enum FileStatusCodes
 {
@@ -42,7 +50,9 @@ public:
     // 建立文件夹
     FileStatusCodes Mkdir(const MD5Code &md5);
     // 写入相应的文件
-    uint16_t WriteFile(const MD5Code &md5, const UploadPushBody &packet);
+    int WriteFile(const MD5Code &md5, const UploadPushBody &packet);
+
+    int WriteFile (const FileChunk& filechunk);
     // 读取相应文件
-    uint16_t ReadFile(const MD5Code &md5, const uint16_t &id, DownloadPushBody &packet);
+    int ReadFile(const MD5Code &md5, const uint16_t &id, DownloadPushBody &packet);
 };
