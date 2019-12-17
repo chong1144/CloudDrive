@@ -1,11 +1,16 @@
 cmake_minimum_required(VERSION 3.10)
 project(CloudDrive)
 
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
+
 add_executable(Top Top.cpp)
 
 add_subdirectory(Utility)
 add_subdirectory(filesystem)
 add_subdirectory(Control)
+add_subdirectory(database)
+add_subdirectory(Control/test)
 
-target_link_libraries(Top Utility filesystem Control)
+target_link_libraries(Top Utility filesystem Control Database)
 
