@@ -1,12 +1,17 @@
 #include "Package/Package.h"
-#include "Utility/Config.h"
-#include "Utility/Log.h"
+#include "Config.h"
+#include "Log.h"
+
+#include "root_dir.h"
+
 
 int main(int argc, char const *argv[])
 {
-    Config c("../config.conf");
+    string configFile = string(root) + "/Config/config.conf";
+    Config c(configFile);
 
-    Log l("../Log/test.log");
+    string logFile = string(root) + "/Log/test.log";
+    Log l(logFile);
 
     l.writeLog(l.ERROR, "Nothing");
     return 0;
