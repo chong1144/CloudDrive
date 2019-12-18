@@ -1,10 +1,30 @@
 cmake_minimum_required(VERSION 3.10)
 project(CloudDrive)
 
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
+
+link_directories(${CMAKE_SOURCE_DIR}/lib)
+
+configure_file(${CMAKE_SOURCE_DIR}/include/root_dir.h.in ${CMAKE_SOURCE_DIR}/include/root_dir.h)
+
+include_directories(${CMAKE_SOURCE_DIR}/include)
+
+set(SRC_DIR ${CMAKE_SOURCE_DIR}/src)
+set(MODULES
+    Utility
+    filesystem
+    Control
+    # database
+)
+
+foreach(modules ${MODULES})
+    add_subdirectory(${SRC_DIR}/${modules})
+    set(LIBS ${LIBS} ${modules})
+endforeach(modules ${MODULES})
+
+
 add_executable(Top Top.cpp)
 
-add_subdirectory(Utility)
-add_subdirectory(filesystem)
-
-target_link_libraries(Top Utility filesystem)
+target_link_libraries(Top ${LIBS})
 

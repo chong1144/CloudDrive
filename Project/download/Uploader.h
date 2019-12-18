@@ -513,7 +513,7 @@ public:
 		// 初始监视控制模块的信号
 		EpollAdd (this->fifo_ctrl_r, EPOLLIN);
 		EpollAdd (this->fifo_db_r, EPOLLIN);
-
+		
 		int epcnt;
 		while (true) {
 			epcnt = EpollWait ();

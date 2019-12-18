@@ -22,9 +22,4 @@ project/filesystem/FileSystem
 
 */*/build/*
 */build/*
-.vs/ProjectSettings.json
-.vs/slnx.sqlite
-.vs/CloudDrive/v16/.suo
-.vs/CMake Overview
-.vs/CloudDrive/v16/.suo
-Project/obj/ARM/Debug/Project.log
+project/build/*

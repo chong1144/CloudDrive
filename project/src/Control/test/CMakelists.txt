@@ -1,0 +1,13 @@
+cmake_minimum_required(VERSION 3.10)
+project(test)
+
+aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/ SUB_SOURCES)
+
+# add_subdirectory(Control)
+# add_subdirectory(Utility)
+
+
+add_executable(testServer testServer.cpp)
+# add_dependencies(testServer Control Utility)
+
+target_link_libraries(testServer Control Utility)
