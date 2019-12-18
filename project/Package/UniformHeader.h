@@ -24,6 +24,8 @@ enum PackageType
     SYN_RESP,        // 同步信号 回应同步结果 包括文件下的文件个数
     SYN_PUSH,        // 同步信号 发送一个目录下的信息
 
+    FILEINFO,        // 文件信息，包含hash，exist，completed，size(MD)
+
     COPY,            // 拷贝文件
     COPY_RES,
     MOVE,            // 复制文件
@@ -31,35 +33,38 @@ enum PackageType
     DELETE,          // 删除文件
     DELETE_RES
     // MKDIR,          // 新建文件夹
+
 };
 
 // 对于不同指令交互的大小的映射表 const类型 不可以更改 只能初始化赋值
 const static std::map<PackageType, uint16_t> PackageSizeMap{
-    {PackageType::SIGNIN, sizeof(SigninBody)},
-    {PackageType::SIGNIN_RES, sizeof(SigninresBody)},
+    {PackageType::SIGNIN, sizeof (SigninBody)},
+    {PackageType::SIGNIN_RES, sizeof (SigninresBody)},
 
-    {PackageType::SIGNUP, sizeof(SignupBody)},
-    {PackageType::SIGNUP_RES, sizeof(SignupresBody)},
+    {PackageType::SIGNUP, sizeof (SignupBody)},
+    {PackageType::SIGNUP_RES, sizeof (SignupresBody)},
 
-    {PackageType::UPLOAD_REQ, sizeof(UploadReqBody)},
-    {PackageType::UPLOAD_RESP, sizeof(UploadRespBody)},
-    {PackageType::UPLOAD_FETCH, sizeof(UploadFetchBody)},
-    {PackageType::UPLOAD_PUSH, sizeof(UploadPushBody)},
-    
-    {PackageType::DOWNLOAD_REQ, sizeof(DownloadReqBody)},
-    {PackageType::DOWNLOAD_RESP, sizeof(DownloadRespBody)},
-    {PackageType::DOWNLOAD_PUSH, sizeof(DownloadPushBody)},
+    {PackageType::UPLOAD_REQ, sizeof (UploadReqBody)},
+    {PackageType::UPLOAD_RESP, sizeof (UploadRespBody)},
+    {PackageType::UPLOAD_FETCH, sizeof (UploadFetchBody)},
+    {PackageType::UPLOAD_PUSH, sizeof (UploadPushBody)},
 
-    {PackageType::SYN_REQ, sizeof(SYNReqBody)},
-    {PackageType::SYN_RESP, sizeof(SYNRespBody)},
-    {PackageType::SYN_PUSH, sizeof(SYNPushBody)},
-    
-    {PackageType::COPY, sizeof(CopyBody)},
-    {PackageType::COPY_RES,sizeof(CopyRespBody)},
-    {PackageType::MOVE, sizeof(MoveBody)},
-    {PackageType::MOVE_RES,sizeof(MoveRespBody)},
-    {PackageType::DELETE, sizeof(DeleteBody)},
-    {PackageType::DELETE_RES, sizeof(DeleteRespBody)},
+    {PackageType::DOWNLOAD_REQ, sizeof (DownloadReqBody)},
+    {PackageType::DOWNLOAD_RESP, sizeof (DownloadRespBody)},
+    {PackageType::DOWNLOAD_PUSH, sizeof (DownloadPushBody)},
+
+    {PackageType::SYN_REQ, sizeof (SYNReqBody)},
+    {PackageType::SYN_RESP, sizeof (SYNRespBody)},
+    {PackageType::SYN_PUSH, sizeof (SYNPushBody)},
+
+    {PackageType::COPY, sizeof (CopyBody)},
+    {PackageType::COPY_RES,sizeof (CopyRespBody)},
+    {PackageType::MOVE, sizeof (MoveBody)},
+    {PackageType::MOVE_RES,sizeof (MoveRespBody)},
+    {PackageType::DELETE, sizeof (DeleteBody)},
+    {PackageType::DELETE_RES, sizeof (DeleteRespBody)},
+
+    {PackageType::FILEINFO, 0}                      //留个零，不定长包，按需要赋值sizeof(FileInfoBody+size)
 };
 
 // 统一的头包 每个指令发送前都要有的

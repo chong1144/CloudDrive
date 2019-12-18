@@ -119,12 +119,12 @@ class Uploader
 	//int fifo_readfile_r;
 
 
-	UniformHeader head;
-	UploadReqBody uploadReq;
-	UploadRespBody resp;
-	UploadFetchBody fetch;
+	UniformHeader headPacket;
+	UploadReqBody uploadReqPacket;
+	UploadRespBody respPacket;
+	UploadFetchBody fetchPacket;
 	UploadPushBody pushPacket;
-	FileInfoBody fileInfo;
+	FileInfoBody fileInfoPacket;
 	Log fileLog;
 	//config
 	Config config;
@@ -187,14 +187,14 @@ public:
 	int sendReqFileInfotoDB ()
 	{
 		int len;
-		len = write (fifo_db_w, &head, headlen);
+		len = write (fifo_db_w, &headPacket, headlen);
 		if (len != headlen) {
 			fileLog.writeLog (Log::ERROR, string ("sendReqFileInfotoDB() write() ret val=") + to_string (len));
 			return -1;
 		}
 
-		len = write (fifo_db_w, &uploadReq, sizeof (uploadReq));
-		if (len != sizeof (uploadReq)) {
+		len = write (fifo_db_w, &uploadReqPacket, sizeof (uploadReqPacket));
+		if (len != sizeof (uploadReqPacket)) {
 			fileLog.writeLog (Log::ERROR, string ("sendReqFileInfotoDB() write() ret val=") + to_string (len));
 			return -1;
 		}
@@ -202,9 +202,35 @@ public:
 		return 0;
 	};
 	// 向DB模块发送保存文件信息的请求
-	int sendReqSaveFileInfotoDB ()
+	int sendReqSaveFileInfotoDB (const string& filehash)
 	{
-		
+		int len;
+		auto& fileinfo = fileMap.at (filehash);
+		strcpy (fileInfoPacket.md5, filehash.data ());
+		fileInfoPacket.completed = isCompleted (filehash);
+		// exist和size应该不影响数据库的行为
+		fileInfoPacket.exist = true;
+		fileInfoPacket.size = fileinfo.size;
+
+		headPacket.p = FILEINFO;
+		// 长度由FileInfoBody和不定长的bitmap组成
+		headPacket.len = sizeof (FileInfoBody) + fileInfoPacket.size;
+		len = write (fifo_db_w, &headPacket, headlen);
+		if (len != headlen) {
+			fileLog.writeLog (Log::ERROR, string ("sendReqSaveFileInfotoDB() write head ret val=") + to_string (len));
+			return -1;
+		}
+		len = write (fifo_db_w, &fileInfoPacket, sizeof (FileInfoBody));
+		if (len != sizeof (FileInfoBody)) {
+			fileLog.writeLog (Log::ERROR, string ("sendReqSaveFileInfotoDB() write fileInfoPacket ret val=") + to_string (len));
+			return -1;
+		}
+		len = write (fifo_db_w, fileinfo.chunkBitMap.data (), fileinfo.chunkBitMap.size ());
+		if (len != fileinfo.chunkBitMap.size ()) {
+			fileLog.writeLog (Log::ERROR, string ("sendReqSaveFileInfotoDB() write chunkBitMap ret val=") + to_string (len));
+			return -1;
+		}
+		return 0;
 	}
 
 	void addfsTable (FileHash hashcode, socket_t sockclnt)
@@ -255,15 +281,15 @@ public:
 		int len;
 		int sockclnt;
 		// 读取header
-		if ((len = read (fifo_ctrl_r, &head, headlen)) != headlen) {
+		if ((len = read (fifo_ctrl_r, &headPacket, headlen)) != headlen) {
 			fileLog.writeLog (Log::ERROR, string ("handleReqfromCtrl 读取header from Ctrl长度错误 len: ") + to_string (len));
 			return -1;
 		}
 
 		// 是上传文件请求
-		if (head.p == pType::UPLOAD_REQ) {
+		if (headPacket.p == pType::UPLOAD_REQ) {
 			fileLog.writeLog (Log::INFO, string ("handleReqfromCtrl 处理 UPLOAD_REQ"));
-			if ((len = read (fifo_ctrl_r, &uploadReq, head.len)) != head.len) {
+			if ((len = read (fifo_ctrl_r, &uploadReqPacket, headPacket.len)) != headPacket.len) {
 				fileLog.writeLog (Log::ERROR, string ("handleReqfromCtrl 读取reqBody from Ctrl长度错误 len: ") + to_string (len));
 				return -1;
 			}
@@ -294,18 +320,17 @@ public:
 	{
 		fileLog.writeLog (Log::INFO, string ("handlePacketFromClient begin"));
 		int len;
-		if ((len = read (fifo_ctrl_r, &head, headlen)) != headlen) {
+		if ((len = read (fifo_ctrl_r, &headPacket, headlen)) != headlen) {
 			fileLog.writeLog (Log::ERROR, string ("handlePacketFromClient 读取header from client长度错误 len: ") + to_string (len));
 			return -1;
 		}
-		if (head.p == pType::UPLOAD_PUSH) {
-			if ((len = read (fifo_ctrl_r, &pushPacket, head.len)) != head.len) {
+		if (headPacket.p == pType::UPLOAD_PUSH) {
+			if ((len = read (fifo_ctrl_r, &pushPacket, headPacket.len)) != headPacket.len) {
 				fileLog.writeLog (Log::ERROR, string ("handlePacketFromClient 读取pushBody from client长度错误 len: ") + to_string (len));
 				return -1;
 			}
 			// already get right package
 
-			// 
 			auto& chunk = fileChunk_map[make_pair (filehash, sockclnt)];
 			memcpy (chunk.content + chunk.size, pushPacket.content, pushPacket.len);
 			chunk.size += pushPacket.len;
@@ -316,22 +341,29 @@ public:
 				uint16_t chunkNo = getNextChunkNo (filehash);
 				// 已经没有空闲块，无需fetch
 				if (chunkNo==fileMap.at(filehash).size) {
+					uploadSet.erase (sockclnt);
+					idleSet.insert (sockclnt);
 					// 判断文件是否完整
 					if (isCompleted (filehash)) {
+						// 完整则调用完成函数扫尾
 						
+						uploadDone (filehash);
 					}
 				}
 				else {
 
 				}
 				// 写完释放文件块
-
-
 				fileChunk_map.erase (make_pair (filehash, sockclnt));
 				fileChunk_map[make_pair (filehash, sockclnt)] = FileChunk{};
 			}
 		}
+		else {
+			fileLog.writeLog (Log::ERROR, string ("handlePacketFromClient 接收到来自client的错误请求"));
+			return -1;
+		}
 		fileLog.writeLog (Log::INFO, string ("handlePacketFromClient end"));
+		return 0;
 	}
 	// 处理从数据库来的信息包
 	int handlePacketFromDB ()
@@ -340,55 +372,56 @@ public:
 		fileLog.writeLog (Log::INFO, string ("handlePacketFromDB begin"));
 		int len;
 		// read head from db
-		len = read (fifo_db_r, &head, headlen);
+		len = read (fifo_db_r, &headPacket, headlen);
 		if (len != headlen) {
 			fileLog.writeLog (Log::ERROR, string ("handlePacketFromDB 读取header from DB, 长度错误 len: ") + to_string (len));
 			return -1;
 		}
 		// read fileinfo from db
-		len = read (fifo_db_r, &fileInfo, sizeof (fileInfo));
-		if (len != sizeof (fileInfo)) {
+		len = read (fifo_db_r, &fileInfoPacket, sizeof (fileInfoPacket));
+		if (len != sizeof (fileInfoPacket)) {
 			fileLog.writeLog (Log::ERROR, string ("handlePacketFromDB 读取fileinfo from DB, 长度错误 len: ") + to_string (len));
 			return -1;
 		}
 		// 到此收到完整的fileInfo头
 		fileLog.writeLog (Log::INFO, "handlePacketFromDB 读取fileInfo from DB done!");
 		// read bitmap from db
-		len = read (fifo_db_r, buf, head.len - sizeof (fileInfo));
-		if (len != head.len - sizeof (fileInfo)) {
+		len = read (fifo_db_r, buf, headPacket.len - sizeof (fileInfoPacket));
+		if (len != headPacket.len - sizeof (fileInfoPacket)) {
 			fileLog.writeLog (Log::ERROR, string ("handlePacketFromDB 读取bitmap from DB, 长度错误 len: ") + to_string (len));
 			return -1;
 		}
-		string filehash (fileInfo.md5, 32);
+		string filehash (fileInfoPacket.md5, 32);
 
 
 		// 到此收到完整的bitmap
 		fileLog.writeLog (Log::INFO, "handlePacketFromDB 读取bitmap from DB done!");
 		fileLog.writeLog (Log::INFO, string ("filehash=") + filehash
-			+ ", exist=" + to_string (fileInfo.exist)
-			+ ", completed=" + to_string (fileInfo.completed)
-			+ ", size=" + to_string (fileInfo.size));
-		fileLog.writeLog (Log::INFO, string ("bitmap: ") + string (buf, fileInfo.size));
+			+ ", exist=" + to_string (fileInfoPacket.exist)
+			+ ", completed=" + to_string (fileInfoPacket.completed)
+			+ ", size=" + to_string (fileInfoPacket.size));
+		fileLog.writeLog (Log::INFO, string ("bitmap: ") + string (buf, fileInfoPacket.size));
 
 
 		// 判断文件 存在&完整 or 存在&不完整
 			// 文件存在&完整
-		if (fileInfo.completed && fileInfo.exist) {
+		if (fileInfoPacket.completed && fileInfoPacket.exist) {
 			// 加入完成队列，秒传
 			fileLog.writeLog (Log::INFO, string ("handlePacketFromDB 秒传! socket: ") + to_string (queryQue.front ()));
+
 			doneQue.push (queryQue.front ());
 			// 从等待查询队列里删除
 			queryQue.pop ();
 		}
 		// 存在&不完整
-		else if (~fileInfo.completed) {
+		else if (~fileInfoPacket.completed) {
 			fileLog.writeLog (Log::INFO, string ("handlePacketFromDB 上传任务开始") + to_string (queryQue.front ()));
 
 			// 放进idle集合，idle作为连接的初始状态
 			idleSet.insert (queryQue.front ());
 			// 建立一个新的映射md5-{bitmap, size, socketSet}
 			FileLinker filelinker;
-			filelinker.size = fileInfo.size;
+			filelinker.size = fileInfoPacket.size;
 			filelinker.sockSet.insert (queryQue.front ());
 			filelinker.chunkBitMap = move (string (buf, len));
 			// insert pair, string 有copy constructor应该没问题
@@ -418,17 +451,17 @@ public:
 	{
 		fileLog.writeLog (Log::INFO, string ("sendReqToClient begin"));
 		int len;
-		memcpy (this->fetch.MD5, filehash.data (), 32);
-		fetch.chunkNo = chunkNo;
+		memcpy (this->fetchPacket.MD5, filehash.data (), 32);
+		fetchPacket.chunkNo = chunkNo;
 		// set head
-		head.p = UPLOAD_FETCH;
-		head.len = PackageSizeMap.at (UPLOAD_FETCH);
-		if (headlen != (len = write (sockclnt, &head, headlen))) {
+		headPacket.p = UPLOAD_FETCH;
+		headPacket.len = PackageSizeMap.at (UPLOAD_FETCH);
+		if (headlen != (len = write (sockclnt, &headPacket, headlen))) {
 			fileLog.writeLog (Log::ERROR, string ("sendReqToClient 发送head长度错误 len: ") + to_string (len));
 			return -1;
 		}
 
-		if (head.len != (len = write (sockclnt, &fetch, head.len))) {
+		if (headPacket.len != (len = write (sockclnt, &fetchPacket, headPacket.len))) {
 			fileLog.writeLog (Log::ERROR, string ("sendReqToClient 发送fetch包长度错误 len: ") + to_string (len));
 			return -1;
 		}
@@ -464,7 +497,8 @@ public:
 	// 文件传输完成后的扫尾
 	void uploadDone (const string& filehash)
 	{
-		
+		sendReqSaveFileInfotoDB (filehash);
+		sendDoneToClient (filehash);
 	}
 
 	// 
