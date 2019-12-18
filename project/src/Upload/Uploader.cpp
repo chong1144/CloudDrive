@@ -1,4 +1,5 @@
 #include "Uploader.h"
+
 Uploader::Uploader (string config_file, string log_file) :config (config_file), fileLog (log_file), fileout (FileIOPath)
 {
     epfd = epoll_create1 (0);
@@ -235,56 +236,74 @@ uint16_t Uploader::getNextChunkNo (const FileHash& filehash)
 //         return -1;
 //     }
 // }
-// 处理从client来的数据包
-int Uploader::handlePacketFromClient (const string& filehash, socket_t sockclnt)
+
+
+// 
+int Uploader::handleUploadReq(socket_t sockclnt)
 {
-    fileLog.writeLog (Log::INFO, string ("handlePacketFromClient begin"));
+    fileLog.writeLog(Log::INFO, string("handleUploadReq begin"));
     int len;
-    if ((len = read (fifo_ctrl_r, &headPacket, headlen)) != headlen) {
-        fileLog.writeLog (Log::ERROR, string ("handlePacketFromClient 读取header from client长度错误 len: ") + to_string (len));
+    if ((len = read(fifo_ctrl_r, &uploadReqPacket, headPacket.len)) != headPacket.len)
+    {
+        fileLog.writeLog(Log::ERROR, string("handleUploadReq 读取reqBody from Ctrl长度错误 len: ") + to_string(len));
         return -1;
     }
-    if (headPacket.p == pType::UPLOAD_PUSH) {
-        if ((len = read (fifo_ctrl_r, &pushPacket, headPacket.len)) != headPacket.len) {
-            fileLog.writeLog (Log::ERROR, string ("handlePacketFromClient 读取pushBody from client长度错误 len: ") + to_string (len));
-            return -1;
-        }
-        // already get right package
+    // 将刚接收的上传请求转发给database模块
+    sendReqFileInfotoDB();
 
-        auto& chunk = fileChunk_map[make_pair (filehash, sockclnt)];
-        memcpy (chunk.content + chunk.size, pushPacket.content, pushPacket.len);
-        chunk.size += pushPacket.len;
-        if (pushPacket.last) {
-            fileout.WriteFile (chunk);
-            // 修改位示图
-            fileMap.at (filehash).chunkBitMap[chunk.chunkNo] = CHUNK_EXIST;
-            uint16_t chunkNo = getNextChunkNo (filehash);
-            // 已经没有空闲块，无需fetch
-            if (chunkNo==fileMap.at(filehash).size) {
-                uploadSet.erase (sockclnt);
-                idleSet.insert (sockclnt);
-                // 判断文件是否完整
-                if (isCompleted (filehash)) {
-                    // 完整则调用完成函数扫尾
-                    
-                    uploadDone (filehash);
-                }
-            }
-            else {
+    // 将socket放进等待查询集合
+    fileLog.writeLog(Log::INFO, string("handleUploadReq 等待查询集合里添加sock: " + to_string(sockclnt)));
+    queryQue.push(sockclnt);
 
-            }
-            // 写完释放文件块
-            fileChunk_map.erase (make_pair (filehash, sockclnt));
-            fileChunk_map[make_pair (filehash, sockclnt)] = FileChunk{};
-        }
-    }
-    else {
-        fileLog.writeLog (Log::ERROR, string ("handlePacketFromClient 接收到来自client的错误请求"));
+    // 建立映射
+    sockFileMap[sockclnt] = string(uploadReqPacket.MD5, MD5Length);
+    //// 将文件和socket关联添加到fs表 需要等到查询数据库完成再做
+    fileLog.writeLog(Log::INFO, string("handleUploadReq end"));
+}
+
+
+// 处理push信号
+int Uploader::handlePush (const string& filehash, socket_t sockclnt)
+{
+    fileLog.writeLog (Log::INFO, string ("handlePush begin"));
+    int len;
+    if ((len = read (sockclnt, &pushPacket, headPacket.len)) != headPacket.len) {
+        fileLog.writeLog (Log::ERROR, string ("handlePush 读取pushBody from client长度错误 len: ") + to_string (len));
         return -1;
     }
-    fileLog.writeLog (Log::INFO, string ("handlePacketFromClient end"));
+    auto& chunk = fileChunk_map[make_pair (filehash, sockclnt)];
+    memcpy (chunk.content + chunk.size, pushPacket.content, pushPacket.len);
+    chunk.size += pushPacket.len;
+    if (pushPacket.last) {
+        // 切换到idle状态
+        uploadSet.erase(sockclnt);
+        idleSet.insert(sockclnt);
+
+        fileout.WriteFile (chunk);
+        // 修改位示图
+        fileMap.at (filehash).chunkBitMap[chunk.chunkNo] = CHUNK_EXIST;
+        uint16_t chunkNo = getNextChunkNo (filehash);
+        // 已经没有需要上传的块，无需fetch
+        if (chunkNo==fileMap.at(filehash).size) {
+            // 判断文件是否完整
+            if (isCompleted (filehash)) {
+                // 完整则调用完成函数扫尾
+                uploadDone (filehash);
+            }
+        }
+        // 有需要上传的块
+        else {
+            sendFetchToClient(filehash, chunkNo, sockclnt);
+        }
+        
+        // 写完释放文件块
+        fileChunk_map.erase (make_pair (filehash, sockclnt));
+        fileChunk_map[make_pair (filehash, sockclnt)] = FileChunk{};
+    }
+    fileLog.writeLog (Log::INFO, string ("handlePush end"));
     return 0;
 }
+
 // 处理从数据库来的信息包
 int Uploader::handlePacketFromDB ()
 {
@@ -311,7 +330,7 @@ int Uploader::handlePacketFromDB ()
         fileLog.writeLog (Log::ERROR, string ("handlePacketFromDB 读取bitmap from DB, 长度错误 len: ") + to_string (len));
         return -1;
     }
-    string filehash (fileInfoPacket.md5, 32);
+    FileHash filehash (fileInfoPacket.md5, MD5Length);
 
 
     // 到此收到完整的bitmap
@@ -328,8 +347,10 @@ int Uploader::handlePacketFromDB ()
     if (fileInfoPacket.completed && fileInfoPacket.exist) {
         // 加入完成队列，秒传
         fileLog.writeLog (Log::INFO, string ("handlePacketFromDB 秒传! socket: ") + to_string (queryQue.front ()));
+        
+        uploadDone(sockFileMap[queryQue.front ()]);
 
-        doneQue.push (queryQue.front ());
+        // doneQue.push (queryQue.front ());
         // 从等待查询队列里删除
         queryQue.pop ();
     }
@@ -345,13 +366,14 @@ int Uploader::handlePacketFromDB ()
         filelinker.sockSet.insert (queryQue.front ());
         filelinker.chunkBitMap = move (string (buf, len));
         // insert pair, string 有copy constructor应该没问题
+
         fileMap.insert (make_pair (filehash, filelinker));
         fileLog.writeLog (Log::INFO, string ("handlePacketFromDB 添加md5-{bitmap, size, socketSet}映射") + to_string (queryQue.front ()));
         uint16_t chunkNo = getNextChunkNo (filehash);
         // 已经不完整，不用chunkNo==size判断完整性
 
         // 向client发送chunk请求，sock转为upload状态
-        sendReqToClient (filehash, chunkNo, queryQue.front ());
+        sendFetchToClient (filehash, chunkNo, queryQue.front ());
         queryQue.pop ();
     }
     else {
@@ -363,17 +385,47 @@ int Uploader::handlePacketFromDB ()
     return 0;
 }
 
-int Uploader::heahandleNewConnect()
+// 接收并处理来自Client的packet
+int Uploader::handlePacketFromClient(socket_t sockclnt)
+{
+    fileLog.writeLog (Log::INFO, string ("handlePacketFromClient begin"));
+    int len;
+    if ((len = read (fifo_ctrl_r, &headPacket, headlen)) != headlen) {
+        fileLog.writeLog (Log::ERROR, string ("handlePacketFromClient 读取header from client长度错误 len: ") + to_string (len));
+        return -1;
+    }
+    if(headPacket.p==pType::UPLOAD_REQ){
+        handleUploadReq(sockclnt);
+    }else if(headPacket.p==pType::UPLOAD_PUSH){
+        handlePush(sockFileMap[sockclnt], sockclnt);
+    }
+    // 剩余暂停和恢复请求还没完成
+    fileLog.writeLog(Log::INFO, string("handlePacketFromClient end"));
+}
+
+// 处理新的连接
+// 设置状态为idle
+// 添加EPOLL监视
+int Uploader::handleNewConnect(socket_t sockclnt)
+{
+    // 新的连接，都是idle
+    idleSet.insert(sockclnt);
+    allSet.insert(sockclnt);
+    // 添加监视
+    EpollAdd(sockclnt, EPOLLIN);
+
+    return 0;
+}
 
 // 向Client发送请求块号
 // 修改socket状态为upload
 // 建立(md5, socket)-->单个文件块映射
 // 每轮查找有空闲socket时调用
-int Uploader::sendReqToClient (const string& filehash, uint16_t chunkNo, socket_t sockclnt)
+int Uploader::sendFetchToClient (const string& filehash, uint16_t chunkNo, socket_t sockclnt)
 {
     fileLog.writeLog (Log::INFO, string ("sendReqToClient begin"));
     int len;
-    memcpy (this->fetchPacket.MD5, filehash.data (), 32);
+    memcpy (this->fetchPacket.MD5, filehash.data (), MD5Length);
     fetchPacket.chunkNo = chunkNo;
     // set head
     headPacket.p = UPLOAD_FETCH;
@@ -389,6 +441,9 @@ int Uploader::sendReqToClient (const string& filehash, uint16_t chunkNo, socket_
     }
     // 到此，向client发送请求块完成
 
+    // 修改位示图
+    fileMap[filehash].chunkBitMap[chunkNo] = CHUNK_UPLOADING;
+
     // 修改socket状态
     if (idleSet.count (sockclnt)) {
         idleSet.erase (sockclnt);
@@ -400,9 +455,48 @@ int Uploader::sendReqToClient (const string& filehash, uint16_t chunkNo, socket_
     uploadSet.insert (sockclnt);
 
     // 依据md5和socket创建文件块映射
-    fileChunk_map[make_pair (string (filehash, 32), sockclnt)] = FileChunk{};
+    fileChunk_map[make_pair (string (filehash, MD5Length), sockclnt)] = FileChunk{};
     fileLog.writeLog (Log::INFO, string ("sendReqToClient end"));
     return 0;
+}
+
+// 向指定的客户端发送完成
+int Uploader::sendDoneToClient (const string& filehash, socket_t sockclnt, bool immediate)
+{
+    fileLog.writeLog (Log::INFO, string ("sendDoneToClient begin"));
+    int len;
+    memcpy(this->uploadDone.MD5, filehash.data(),32);
+    this->uploadDone.immediate = immediate;
+
+    // set head
+    headPacket.p = pType::UPLOAD_DONE;
+    headPacket.len = PackageSizeMap.at (pType::UPLOAD_DONE);
+    if (headlen != (len = write (sockclnt, &headPacket, headlen))) {
+        fileLog.writeLog (Log::ERROR, string ("sendDoneToClient 发送head长度错误 len: ") + to_string (len));
+        return -1;
+    }
+
+    if (headPacket.len != (len = write (sockclnt, &uploadDonePacket, sizeof(uploadDonePacket)))) {
+        fileLog.writeLog (Log::ERROR, string ("sendDoneToClient 发送fetch包长度错误 len: ") + to_string (len));
+        return -1;
+    }
+    // 到此，向client发送请求块完成
+
+    // 修改socket状态
+    if (uploadSet.count (sockclnt)) {
+        uploadSet.erase (sockclnt);
+    }
+    else {
+        fileLog.writeLog (Log::WARNING, string ("sendDoneToClient 目标socket先前不在upload集合中"));
+    }
+    // 改为idle状态
+    idleSet.insert (sockclnt);
+
+    // 依据md5和socket创建文件块映射
+    fileChunk_map[make_pair (string (filehash, 32), sockclnt)] = FileChunk{};
+    fileLog.writeLog (Log::INFO, string ("sendDoneToClient end"));
+    return 0;
+
 }
 
 // 向客户端发送完成信号
@@ -412,10 +506,14 @@ void Uploader::sendDoneToClient (const string& filehash)
     auto& fileinfo = fileMap.at (filehash);
     // 遍历file-socket表中的socket，发送完成信号
     for (auto& sock : fileinfo.sockSet) {
-        sendReqToClient (filehash, fileinfo.size, sock);
+        sendFetchToClient (filehash, fileinfo.size, sock);
     }
 }
 
+// void Uploader::sendDoneToClient(socket_t sockclnt)
+// {
+    
+// }
 // 文件传输完成后的扫尾
 void Uploader::uploadDone (const string& filehash)
 {
@@ -459,22 +557,52 @@ int Uploader::run ()
                     handlePacketFromDB ();
                 }
             }
-            // 从client端来的包
-            for (auto& file : fileMap) {
-                for (auto& sock : file.second.sockSet) {
-                    if (sock == ep_ev.data.fd) {
-                        // 错误，暂时的处理是删除句柄监视
-                        if (ep_ev.events & EPOLLERR) {
-                            fileLog.writeLog (Log::ERROR, string ("EPOLLERR sockclnt: ") + to_string (ep_ev.data.fd) + " EpollDel!!!");
-                            EpollDel (ep_ev.data.fd);
-                        }
-
-                        if (ep_ev.events & EPOLLIN) {
-                            handlePacketFromClient (file.first, ep_ev.data.fd);
-                        }
+            // 建立新的连接
+            else if(ep_ev.data.fd == socklisten){
+                if(ep_ev.events & EPOLLERR){
+                    fileLog.writeLog(Log::ERROR, string("EPOLLERR socket:")+to_string(socklisten));
+                    EpollDel(ep_ev.data.fd);
+                    exit(-1);
+                }
+                if(ep_ev.events & EPOLLIN){
+                    int sockclnt = accept(socklisten, nullptr, nullptr);
+                    if(sockclnt==-1){
+                        fileLog.writeLog(Log::ERROR, string("accept error"));
+                        exit(-1);
                     }
+                    // 处理新连接
+                    handleNewConnect(sockclnt);
                 }
             }
+            // 从client端来的包
+            for (auto& sock:allSet){
+                if(ep_ev.data.fd==sock){
+                    if(ep_ev.events&EPOLLERR)                    {
+                        fileLog.writeLog(Log::ERROR, string("EPOLLERR socket:") + to_string(sock));
+                        exit(-1);
+                    }
+                    if(ep_ev.events&EPOLLIN){
+                        handlePacketFromClient(sock);
+                    }
+
+                }
+            }
+
+            // for (auto& file : fileMap) {
+            //     for (auto& sock : file.second.sockSet) {
+            //         if (sock == ep_ev.data.fd) {
+            //             // 错误，暂时的处理是删除句柄监视
+            //             if (ep_ev.events & EPOLLERR) {
+            //                 fileLog.writeLog (Log::ERROR, string ("EPOLLERR sockclnt: ") + to_string (ep_ev.data.fd) + " EpollDel!!!");
+            //                 EpollDel (ep_ev.data.fd);
+            //             }
+
+            //             if (ep_ev.events & EPOLLIN) {
+            //                 handlePush (file.first, ep_ev.data.fd);
+            //             }
+            //         }
+            //     }
+            // }
             fileLog.writeLog (Log::WARNING, string ("there is a fd that was not handled"));
 
         }

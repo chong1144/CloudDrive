@@ -18,7 +18,7 @@ using std::string;
 using std::unique_ptr;
 struct FileChunk
 {
-    char md5[64];
+    char md5[MD5Length];
     uint16_t chunkNo;
     int size;
     char content[1024 * 1024];

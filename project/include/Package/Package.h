@@ -24,6 +24,7 @@ const uint16_t MD5Length = 64;
 #include "UploadRespBody.h"
 #include "UploadFetchBody.h"
 #include "UploadPushBody.h"
+#include "UploadDone.h"
 
 #include "DownloadReqBody.h"
 #include "DownloadRespBody.h"
