@@ -4,7 +4,7 @@
 
 struct MkdirBody
 {
+    char Session[SessionLength];     
     char dirName[fileNameLength];
     char path[pathLength];
-    char Session[SessionLength];     
 };

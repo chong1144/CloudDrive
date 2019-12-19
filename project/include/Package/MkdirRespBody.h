@@ -11,7 +11,7 @@ enum MkdirRespCodes
 
 struct MkdirRespBody
 {
-    MkdirRespCodes code;
     char Session[SessionLength];
+    MkdirRespCodes code;
     char ExternInformation[ExternInformationLength];
 };
