@@ -45,25 +45,6 @@ string MD5(const char *data);
 string generate_string(string src);
 string generate_timestamp();
 
-//utility
-string MD5(const char * data)
-{
-	MD5_CTX ctx;
-    string res;
-	unsigned char md[16];
-	char tmp[3]={'\0'};
-	int i;
-	MD5_Init(&ctx);
-	MD5_Update(&ctx,data,strlen(data));
-	MD5_Final(md,&ctx);
-
-	for( i=0; i<16; i++ ){
-		sprintf(tmp,"%02x",md[i]);
-		//strcat(buf,tmp);
-        res += string(tmp);
-	}
-	return res;
-}
 
 
 
@@ -110,6 +91,10 @@ private:
     //log
     Log log;
 
+    //bitmap buffer
+    char *bitmapRecvBuf [BITMAP_SIZE*3];
+    char *bitmapSendBuf [BITMAP_SIZE*3];
+
 public:
     Database(string config_file,string log_file);
     int Run();
@@ -123,7 +108,7 @@ public:
     int Users_Update(string Username,string IP);
 
 
-    
+    bool dir_exist(string Uid,string dirName,string path);
     bool Files_Isdir(string Uid,string Filename,string path );
     string Files_Get_Hash(string Uid,string Filename,string path);
     int Files_Insert(string Uid,string Filename,string path,string hash,bool Isdir);
@@ -140,7 +125,8 @@ public:
     int FileIndex_Refdec(string hash);
     string FileIndex_GetBitmap(string hash);
     int FileIndex_UpdateRef(string hash,int Refcount);
-    int FileIndex_UpdataBitmap(string hash,string Bitmap);
+    int FileIndex_UpdateBitmap(string hash,string Bitmap);
+    int Database::FileIndex_GetSize(string hash);
 
     ~Database();
 };

@@ -10,6 +10,27 @@ string generate_string(string src)
     
 }
 
+//utility
+string MD5(const char * data)
+{
+	MD5_CTX ctx;
+    string res;
+	unsigned char md[16];
+	char tmp[3]={'\0'};
+	int i;
+	MD5_Init(&ctx);
+	MD5_Update(&ctx,data,strlen(data));
+	MD5_Final(md,&ctx);
+
+	for( i=0; i<16; i++ ){
+		sprintf(tmp,"%02x",md[i]);
+		//strcat(buf,tmp);
+        res += string(tmp);
+	}
+	return res;
+}
+
+
 string generate_timestamp()
 {
     //生成时间戳
@@ -69,6 +90,9 @@ Database::Database(string config_file,string log_file) : config(config_file), lo
     }
     //cout << "open fifo success"<<endl;
     log.writeLog(Log::INFO,"open fifo success");
+
+    memset(bitmapRecvBuf,0,BITMAP_SIZE*3);
+    memset(bitmapSendBuf,0,BITMAP_SIZE*3);
 }
 
 //disconnect from database
@@ -154,6 +178,33 @@ int Database::Users_Update(string Username,string IP)
  * 
  * 
  * ********************************/
+
+bool Database::dir_exist(string Uid,string dirName,string path)
+{
+     string cmd = "select * Files where Uid="+ \
+    generate_string(Uid)+" and "+\
+    "Filename="+generate_string(Filename)+" and "+\
+    "Path="+generate_string(path)+";";
+
+
+    // cout<<cmd<<endl;
+    if (mysql_query(mysql, cmd.c_str()))
+    {
+        log.writeLog(Log::ERROR,string("mysql_query failed(")+string(mysql_error(mysql))+string(")"));
+    }
+    
+    if ((result = mysql_store_result(mysql)) == NULL)
+    {
+        log.writeLog(Log::ERROR,string("mysql_store_result failed"));
+    }
+    
+    // 若没有找到相同文件
+    if((row = mysql_fetch_row(result)) == NULL)
+    {
+        return false;
+    }  
+    return true;
+}
 
 bool Database::Files_Isdir(string Uid,string Filename,string path)
 {
@@ -472,7 +523,39 @@ string Database::FileIndex_GetBitmap(string hash)
 
 }
 
-int Database::FileIndex_UpdataBitmap(string hash,string Bitmap)
+int Database::FileIndex_GetSize(string hash)
+{
+    //char Bitmap[BITMAP_SIZE];
+    int size;
+
+    string cmd = string("select Size from FileIndex where ")+ \
+    "Hash = "+generate_string(hash) + ";";
+
+     if (mysql_query(mysql, cmd.c_str()))
+    {
+        log.writeLog(Log::ERROR,string("mysql_query failed(")+string(mysql_error(mysql))+string(")"));
+    }
+
+    if ((result = mysql_store_result(mysql)) == NULL)
+    {
+        log.writeLog(Log::ERROR,string("mysql_store_result failed"));
+    }
+    
+    // 若找不到该用户
+    if((row = mysql_fetch_row(result)) == NULL)
+    {
+        return -1;
+    }
+    else
+    {
+        return atoi(row[0]);
+    }
+    
+    
+
+}
+
+int Database::FileIndex_UpdateBitmap(string hash,string Bitmap)
 {
      string cmd=string("update FileIndex set ")+ \
     " Bitmap= "+generate_string(Bitmap)+\
@@ -555,7 +638,16 @@ int Database::Run()
                     log.writeLog(Log::ERROR, string("fifo closed ")+to_string(events[i].data.fd));
                     exit(-1);
                 }
-
+                if(header.p==PackageType::FILEINFO)
+                {
+                    FileInfoBody *p = (FileInfoBody *)(temp);
+                    len = read(events[i].data.fd,bitmapRecvBuf+strlen(bitmapRecvBuf),p->size);
+                    if(len<=0)
+                    {
+                        log.writeLog(Log::ERROR, string("fifo closed ")+to_string(events[i].data.fd));
+                        exit(-1);
+                    }
+                }
                 //将其插入命令头队列的队尾
                 header_queue.push(header);
 
@@ -721,43 +813,102 @@ int Database::do_mysql_cmd(UniformHeader h)
         
     }
 
-    //若为文件上传请求 同名文件的覆盖还没做
+    //若为文件上传请求 
     else if(h.p == PackageType::UPLOAD_REQ)
     {
         UploadReqBody *body = (UploadReqBody *)cmd_queue.front();
 
         //生成返回包的头
-        res_header.len = sizeof(UploadRespBody);
-        res_header.p = PackageType::UPLOAD_RESP;
+        //包的长度此时还无法计算
+
+        log.writeLog(Log::INFO, "[Upload Req] Uid:"+string(body->Session)+", FileName:"+string(body->fileName)+", Filesize:"+to_string(body->fileSize)+", Path:"+string(body->path));
+
+
+        //生成包头
+        res_header.len = sizeof(FileInfoBody);
+        res_header.p = PackageType::FILEINFO;
         res_header_queue.push(res_header);
 
-        log.writeLog(Log::INFO, "[Upload Req] Uid:"+string(body->Session)+", FileName:"+string(body->fileName)+", Filesize:"+to_string(body->fileSize)+", Path:"+string(body->path)+", Isdir:"+to_string(body->isDir));
-
-
          //生成返回包的身
-        UploadRespBody *res = new UploadRespBody[1];
-        strcpy(res->Session,body->Session);
+        FileInfoBody *res = new FileInfoBody[1];
+        strcpy(res->md5,body->md5);
+
+        
 
         //若文件已存在
         if(file_exist(body->MD5))
         {
             FileIndex_Refinc(body->MD5);
-            res->code = UPLOAD_ALREADY_HAS;
-            log.writeLog(Log::INFO,"[Upload Req Success] ALREADY_HAS");
+            
+            
+            pair<int,int> ref_complete =  FileIndex_Get_Ref_Complete(body->md5);
+           
+            res->completed = ref_complete.second;
+           
+            
+            log.writeLog(Log::INFO,"[Upload Req Success] ALREADY_HAS or uploading");
         } 
         else
         {
-            if(!body->isDir)
-                FileIndex_Insert(body->MD5,body->fileSize);
-            res->code = UPLOAD_SUCCESS;
+            
+            FileIndex_Insert(body->MD5,body->fileSize);
+            res->completed = 0;
             log.writeLog(Log::INFO,"[Upload Req Success]");
         }
-        Files_Insert(body->Session,body->fileName,body->path,body->MD5,body->isDir);
+        Files_Insert(body->Session,body->fileName,body->path,body->MD5,0);
 
-    
-        //将包加入写队列 
+
+        string bitmap = FileIndex_GetBitmap(body->md5);
+        res->exist = 1;
+        res->size = bitmap.size();
+       
+        //将包加入写队列
         res_queue.push(res);
 
+        //将bitmap 写入缓冲区
+        strcat(bitmapSendBuf,bitmap.c_str());
+        
+        delete body;
+    }
+
+    //若为新建文件夹请求 
+    else if(h.p == PackageType::MKDIR)
+    {
+        MkdirBody *body = (MkdirBody *)cmd_queue.front();
+
+        //生成返回包的头
+        //包的长度此时还无法计算
+
+        log.writeLog(Log::INFO, "[Mkdir Req] Uid:"+string(body->Session)+", DirName:"+string(body->fileName)+", Path:"+string(body->path));
+
+
+         //生成返回包的头
+        res_header.len = sizeof(MkdirRespBody);
+        res_header.p = PackageType::MKDIR_RES;
+        res_header_queue.push(res_header);
+        
+        MkdirRespBody *res = new MkdirRespBody[1];
+        strcpy(res->Session,body->Session);
+        
+
+        //若文件已存在
+        if(dir_exist(body->Session,body->dirName,body->path))
+        {
+            
+            res->code = MKDIR_ALREADY_HAS;
+            log.writeLog(Log::INFO,"[Mkdir Failed] ALREADY_HAS ");
+        } 
+        else
+        {
+            
+            Files_Insert(body->Session,body->dirName,body->path,"",1);
+            res->code = MKDIR_SUCCESS;
+            log.writeLog(Log::INFO,"[Mkdir Req Success]");
+        }
+        
+        //将包加入写队列
+        res_queue.push(res);
+       
         delete body;
     }
 
@@ -905,6 +1056,44 @@ int Database::do_mysql_cmd(UniformHeader h)
         delete body;
     }
 
+    
+     //若为更新文件信息
+    else if(h.p == PackageType::FILEINFO)
+    {
+        FileInfoBody *body = (FileInfoBody *)cmd_queue.front();
+
+        //不需要返回
+
+        log.writeLog(Log::INFO, "[FileInfo Req] md5:"+string(body->md5));
+
+        char bitmap[BITMAP_SIZE];
+        memset(bitmap,0,BITMAP_SIZE);
+
+        //从缓冲区获取bitmap
+        memcpy(bitmap,bitmapRecvBuf,body->size);
+
+        //移动缓冲区
+        memmove(bitmapRecvBuf,bitmapRecvBuf+body->size,sizeof(bitmapRecvBuf)-body->size);
+
+        if(bitmap=="NULL")
+        {
+            log.writeLog(Log::ERROR,"[FileInfo update error]");
+        }
+        else
+        {
+            log.writeLog(Log::WARNING,"[FileInfo update success]");
+        }
+                
+        FileIndex_UpdateBitmap(body->md5,bitmap);
+
+        //将包加入写队列 
+        res_queue.push(res);
+
+        delete body;
+    }
+
+    
+
     cmd_queue.pop();
     return 1;
 }
@@ -949,16 +1138,26 @@ int Database::send_back(UniformHeader header)
     }
     else if (header.p == PackageType::SYN_RESP)
     {
-        SYNReqBody *body = (SYNReqBody*)res_queue.front();
+        SYNRespBody *body = (SYNRespBody*)res_queue.front();
         write(fifo_dtoc,&header,sizeof(header));
-        write(fifo_dtoc,body,sizeof(SYNReqBody));
+        write(fifo_dtoc,body,sizeof(SYNRespBody));
         delete body;
     }
-    else if (header.p == PackageType::UPLOAD_RESP)
+    else if (header.p == PackageType::MKDIR_RES)
     {
-        UploadRespBody *body = (UploadRespBody*)res_queue.front();
+        MkdirRespBody *body = (MkdirRespBody*)res_queue.front();
         write(fifo_dtoc,&header,sizeof(header));
-        write(fifo_dtoc,body,sizeof(UploadRespBody));
+        write(fifo_dtoc,body,sizeof(MkdirRespBody));
+        delete body;
+    }
+    else if (header.p == PackageType::FILEINFO)
+    {
+        FileInfoBody *body = (FileInfoBody*)res_queue.front();
+        res_queue.pop();
+        write(fifo_dtor,&header,sizeof(header));
+        write(fifo_dtor,body,sizeof(FileInfoBody));
+        write(fifo_dtor,bitmapSendBuf,body->size);
+        memmove(bitmapSendBuf,bitmapSendBuf+body->size,sizeof(bitmapSendBuf) - (body->size));
         delete body;
     }
     

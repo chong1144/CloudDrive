@@ -31,8 +31,9 @@ enum PackageType
     MOVE,            // 复制文件
     MOVE_RES,
     DELETE,          // 删除文件
-    DELETE_RES
-    // MKDIR,          // 新建文件夹
+    DELETE_RES,
+    MKDIR,          // 新建文件夹
+    MKDIR_RES
 
 };
 
@@ -63,6 +64,9 @@ const static std::map<PackageType, uint16_t> PackageSizeMap{
     {PackageType::MOVE_RES,sizeof (MoveRespBody)},
     {PackageType::DELETE, sizeof (DeleteBody)},
     {PackageType::DELETE_RES, sizeof (DeleteRespBody)},
+
+    {PackageType::MKDIR, sizeof(MkdirRespBody)},
+    {PackageType::MKDIR_RES, sizeof(MkdirRespBody)},  
 
     {PackageType::FILEINFO, 0}                      //留个零，不定长包，按需要赋值sizeof(FileInfoBody+size)
 };

@@ -41,4 +41,7 @@ const uint16_t MD5Length = 64;
 #include "DeleteRespBody.h"
 #include "FileInfoBody.h"
 
+#include "MkdirBody.h"
+#include "MkdirRespBody.h"
+
 #include "UniformHeader.h"
