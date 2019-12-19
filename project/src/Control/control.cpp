@@ -266,21 +266,21 @@ void control::waitForClient()
 
                 switch (u.p)
                 {
-                // for r
-                case PackageType::UPLOAD_REQ:
-                    write(this->fifo_ctor, &u, sizeof(u));
-                    write(this->fifo_ctor, &candidateSock, sizeof(candidateSock));
-                    this->EpollDel(epfd, candidateSock);
+                // // for r
+                // case PackageType::UPLOAD_REQ:
+                //     write(this->fifo_ctor, &u, sizeof(u));
+                //     write(this->fifo_ctor, &candidateSock, sizeof(candidateSock));
+                //     this->EpollDel(epfd, candidateSock);
 
-                    break;
+                //     break;
 
-                // for s
-                case PackageType::DOWNLOAD_REQ:
-                    write(this->fifo_ctos, &u, sizeof(u));
-                    write(this->fifo_ctos, &candidateSock, sizeof(candidateSock));
-                    this->EpollDel(epfd, candidateSock);
+                // // for s
+                // case PackageType::DOWNLOAD_REQ:
+                //     write(this->fifo_ctos, &u, sizeof(u));
+                //     write(this->fifo_ctos, &candidateSock, sizeof(candidateSock));
+                //     this->EpollDel(epfd, candidateSock);
 
-                    break;
+                //     break;
                 // for d
                 case PackageType::SIGNIN:
                 case PackageType::SIGNUP:
