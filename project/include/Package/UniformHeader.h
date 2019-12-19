@@ -25,7 +25,7 @@ enum PackageType
     SYN_RESP,        // 同步信号 回应同步结果 包括文件下的文件个数
     SYN_PUSH,        // 同步信号 发送一个目录下的信息
 
-    FILEINFO,        // 文件信息，包含hash，exist，completed，size(MD)
+    FILEINFO,        // 文件信息，包含hash，exist，completed，size(MB)
 
     COPY,            // 拷贝文件
     COPY_RES,
@@ -65,7 +65,7 @@ const static std::map<PackageType, uint16_t> PackageSizeMap{
     {PackageType::DELETE, sizeof (DeleteBody)},
     {PackageType::DELETE_RES, sizeof (DeleteRespBody)},
 
-    {PackageType::FILEINFO, 0}                      //留个零，不定长包，按需要赋值sizeof(FileInfoBody+size)
+    {PackageType::FILEINFO, 0}                      //留个零，不定长包，按需要赋值sizeof(FileInfoBody)+size
 };
 
 // 统一的头包 每个指令发送前都要有的

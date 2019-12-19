@@ -74,15 +74,15 @@ struct FileLinker
 
 class Uploader
 {
-	enum class SOCKETSTATE :int
-	{
-		IDEL, UPLOADING
-	};
-	struct SocketState
-	{
-		socket_t sock;
-		SOCKETSTATE state;
-	};
+	// enum class SOCKETSTATE :int
+	// {
+	// 	IDEL, UPLOADING
+	// };
+	// struct SocketState
+	// {
+	// 	socket_t sock;
+	// 	SOCKETSTATE state;
+	// };
 
 	// 维护的md5-{bitmap, size, socketSet}表 
 	// 收到数据库的查询结果，文件不完整时创建，新连接请求同一个文件时添加
@@ -159,7 +159,8 @@ class Uploader
     sockaddr_in addr;
 
 public:
-	Uploader (string config_file, string log_file) :config (config_file), fileLog (log_file), fileout (FileIOPath){};
+	Uploader(string config_file, string log_file)
+		: config(config_file), fileLog(log_file), fileout(FileIOPath){};
 
 	void init(const string&);
     

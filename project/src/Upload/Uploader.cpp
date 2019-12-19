@@ -127,7 +127,7 @@ int Uploader::sendReqSaveFileInfotoDB (const string& filehash)
 {
     int len;
     auto& fileinfo = fileMap.at (filehash);
-    strcpy (fileInfoPacket.md5, filehash.data ());
+    strncpy(fileInfoPacket.md5, filehash.data(), MD5Length);
     fileInfoPacket.completed = isCompleted (filehash);
     // exist和size应该不影响数据库的行为
     fileInfoPacket.exist = true;
@@ -317,6 +317,9 @@ int Uploader::handlePacketFromDB ()
         return -1;
     }
     // read fileinfo from db
+    if(headPacket.p!=pType::FILEINFO){
+        fileLog.writeLog(Log::ERROR, string("handlePacketFromDB 收到的包不是FILEINFO"));
+    }
     len = read (fifo_db_r, &fileInfoPacket, sizeof (fileInfoPacket));
     if (len != sizeof (fileInfoPacket)) {
         fileLog.writeLog (Log::ERROR, string ("handlePacketFromDB 读取fileinfo from DB, 长度错误 len: ") + to_string (len));
@@ -348,8 +351,7 @@ int Uploader::handlePacketFromDB ()
         // 加入完成队列，秒传
         fileLog.writeLog (Log::INFO, string ("handlePacketFromDB 秒传! socket: ") + to_string (queryQue.front ()));
         
-        uploadDone(sockFileMap[queryQue.front ()]);
-
+        sendDoneToClient(filehash, queryQue.front (), true);
         // doneQue.push (queryQue.front ());
         // 从等待查询队列里删除
         queryQue.pop ();
@@ -379,7 +381,7 @@ int Uploader::handlePacketFromDB ()
     else {
         fileLog.writeLog (Log::WARNING, string ("handlePacketFromDB fileInfo未处理的情况") + to_string (queryQue.front ()));
     }
-    // 只要向数据库发出UPLOAD请求，就一定存在，不必考虑不存在
+    // 只要向数据库发出UPLOAD请求，不存在就被创建，一定存在，不必考虑不存在
 
     fileLog.writeLog (Log::INFO, string ("handlePacketFromDB end"));
     return 0;
@@ -395,12 +397,17 @@ int Uploader::handlePacketFromClient(socket_t sockclnt)
         return -1;
     }
     if(headPacket.p==pType::UPLOAD_REQ){
+        if(idleSet.count(sockclnt)){
+            fileLog.writeLog(Log::WARNING, string("socket is not in idleSet!!!"));
+            return -1;
+        }
         handleUploadReq(sockclnt);
     }else if(headPacket.p==pType::UPLOAD_PUSH){
         handlePush(sockFileMap[sockclnt], sockclnt);
     }
     // 剩余暂停和恢复请求还没完成
     fileLog.writeLog(Log::INFO, string("handlePacketFromClient end"));
+    return 0;
 }
 
 // 处理新的连接
@@ -449,7 +456,7 @@ int Uploader::sendFetchToClient (const string& filehash, uint16_t chunkNo, socke
         idleSet.erase (sockclnt);
     }
     else {
-        fileLog.writeLog (Log::WARNING, string ("sendReqToClient 目标socket先前不在idel集合中"));
+        fileLog.writeLog (Log::WARNING, string ("sendReqToClient 目标socket先前不在idle集合中"));
     }
     // 改为正在传输状态
     uploadSet.insert (sockclnt);
@@ -465,7 +472,7 @@ int Uploader::sendDoneToClient (const string& filehash, socket_t sockclnt, bool 
 {
     fileLog.writeLog (Log::INFO, string ("sendDoneToClient begin"));
     int len;
-    memcpy(this->uploadDone.MD5, filehash.data(),32);
+    memcpy(this->uploadDone.MD5, filehash.data(), MD5Length);
     this->uploadDone.immediate = immediate;
 
     // set head
@@ -506,7 +513,7 @@ void Uploader::sendDoneToClient (const string& filehash)
     auto& fileinfo = fileMap.at (filehash);
     // 遍历file-socket表中的socket，发送完成信号
     for (auto& sock : fileinfo.sockSet) {
-        sendFetchToClient (filehash, fileinfo.size, sock);
+        sendDoneToClient(filehash, sock);
     }
 }
 
@@ -587,24 +594,7 @@ int Uploader::run ()
 
                 }
             }
-
-            // for (auto& file : fileMap) {
-            //     for (auto& sock : file.second.sockSet) {
-            //         if (sock == ep_ev.data.fd) {
-            //             // 错误，暂时的处理是删除句柄监视
-            //             if (ep_ev.events & EPOLLERR) {
-            //                 fileLog.writeLog (Log::ERROR, string ("EPOLLERR sockclnt: ") + to_string (ep_ev.data.fd) + " EpollDel!!!");
-            //                 EpollDel (ep_ev.data.fd);
-            //             }
-
-            //             if (ep_ev.events & EPOLLIN) {
-            //                 handlePush (file.first, ep_ev.data.fd);
-            //             }
-            //         }
-            //     }
-            // }
             fileLog.writeLog (Log::WARNING, string ("there is a fd that was not handled"));
-
         }
     }
 
