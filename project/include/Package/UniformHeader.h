@@ -15,7 +15,8 @@ enum PackageType
     UPLOAD_RESP,    // 上传文件的结果
     UPLOAD_FETCH,   // 服务器端要求上传某一特殊文件块
     UPLOAD_PUSH,    // 客户端传给服务器端需要的数据块
- 
+    UPLOAD_DONE,    // 服务端传给客户端的完成信号
+
     DOWNLOAD_REQ,   // 下载文件的信号 第一次告知服务器需要下载的文件的路径、名称
     DOWNLOAD_RESP,  // 下载文件的结果
     DOWNLOAD_PUSH,  // 服务器端给客户端某一个块
@@ -24,7 +25,7 @@ enum PackageType
     SYN_RESP,        // 同步信号 回应同步结果 包括文件下的文件个数
     SYN_PUSH,        // 同步信号 发送一个目录下的信息
 
-    FILEINFO,        // 文件信息，包含hash，exist，completed，size(MD)
+    FILEINFO,        // 文件信息，包含hash，exist，completed，size(MB)
 
     COPY,            // 拷贝文件
     COPY_RES,
@@ -49,7 +50,7 @@ const static std::map<PackageType, uint16_t> PackageSizeMap{
     {PackageType::UPLOAD_RESP, sizeof (UploadRespBody)},
     {PackageType::UPLOAD_FETCH, sizeof (UploadFetchBody)},
     {PackageType::UPLOAD_PUSH, sizeof (UploadPushBody)},
-
+    {PackageType::UPLOAD_DONE, sizeof (UploadDoneBody)},
     {PackageType::DOWNLOAD_REQ, sizeof (DownloadReqBody)},
     {PackageType::DOWNLOAD_RESP, sizeof (DownloadRespBody)},
     {PackageType::DOWNLOAD_PUSH, sizeof (DownloadPushBody)},

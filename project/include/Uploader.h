@@ -30,6 +30,9 @@ using size_t = uint64_t;
 using pType = PackageType;
 const size_t headlen = sizeof (UniformHeader);
 using std::queue;
+using FileHash = string;
+using socket_t = int;
+
 const int MAXEVENTS = 20;
 
 const char CHUNK_EXIST = '1';
@@ -57,25 +60,30 @@ int epoll_del (int epfd, int fd)
 	return 0;
 }
 
+struct FileLinker
+{
+	uint32_t size;					// 记录chunk数量
+	string chunkBitMap;				// 文件位示图
+	set <socket_t> sockSet;			// 正在上传此文件的链接集合
+	FileLinker& operator=(const FileLinker& _Right){
+		this->size = _Right.size;
+		this->chunkBitMap = _Right.chunkBitMap;
+		this->sockSet = _Right.sockSet;
+	}
+};
+
 class Uploader
 {
-	using FileHash = string;
-	using socket_t = int;
-	enum class SOCKETSTATE :int
-	{
-		IDEL, UPLOADING
-	};
-	struct SocketState
-	{
-		socket_t sock;
-		SOCKETSTATE state;
-	};
-	struct FileLinker
-	{
-		uint32_t size;					// 记录chunk数量
-		string chunkBitMap;				// 文件位示图
-		set <socket_t> sockSet;			// 正在上传此文件的链接集合
-	};
+	// enum class SOCKETSTATE :int
+	// {
+	// 	IDEL, UPLOADING
+	// };
+	// struct SocketState
+	// {
+	// 	socket_t sock;
+	// 	SOCKETSTATE state;
+	// };
+
 	// 维护的md5-{bitmap, size, socketSet}表 
 	// 收到数据库的查询结果，文件不完整时创建，新连接请求同一个文件时添加
 	// 连接暂停时，断开时，删除该连接
@@ -106,6 +114,10 @@ class Uploader
 	// 向client发送完成信号包则删除
 	queue<socket_t> doneQue;
 
+	// 目前连接的全集
+	set<socket_t> allSet;
+
+	map<socket_t, FileHash> sockFileMap;
 	//database model to/from upload model
 	int fifo_db_w;
 	int fifo_db_r;
@@ -124,7 +136,10 @@ class Uploader
 	UploadRespBody respPacket;
 	UploadFetchBody fetchPacket;
 	UploadPushBody pushPacket;
+	UploadDoneBody uploadDonePacket;
 	FileInfoBody fileInfoPacket;
+	
+
 	Log fileLog;
 	//config
 	Config config;
@@ -144,7 +159,8 @@ class Uploader
     sockaddr_in addr;
 
 public:
-	Uploader (string config_file, string log_file) :config (config_file), fileLog (log_file), fileout (FileIOPath){};
+	Uploader(string config_file, string log_file)
+		: config(config_file), fileLog(log_file), fileout(FileIOPath){};
 
 	void init(const string&);
     
@@ -172,20 +188,24 @@ public:
 	// // 处理从控制模块来的信息包
 	// int handleReqfromCtrl ();
 
-	// 处理从client来的数据包
-	int handlePacketFromClient (const string& filehash, socket_t sockclnt);
+	int handleUploadReq(socket_t sockclnt);
+
+	// 处理push
+	int handlePush (const string& filehash, socket_t sockclnt);
 	// 处理从数据库来的信息包
 	int handlePacketFromDB ();
 
+	int handlePacketFromClient(socket_t);
 	// 处理新到的连接请求
-	int handleNewConnect();
+	int handleNewConnect(socket_t sockclnt);
 	
 	// 向Client发送请求块号
 	// 修改socket状态为upload
 	// 建立(md5, socket)-->单个文件块映射
 	// 每轮查找有空闲socket时调用
-	int sendReqToClient (const string& filehash, uint16_t chunkNo, socket_t sockclnt);
+	int sendFetchToClient (const string& filehash, uint16_t chunkNo, socket_t sockclnt);
 	
+	int sendDoneToClient (const string& filehash, socket_t sockclnt, bool immediate=false);
 	// 向客户端发送完成信号
 	// 复用UploadFetchBody，chunk=size
 	void sendDoneToClient (const string& filehash);

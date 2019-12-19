@@ -198,7 +198,7 @@ void control::waitForClient()
             if (candidateSock == sock)
             {
                 // 有新连接来临时
-                if (candidateSockEvents & EPOLLOUT)
+                if (candidateSockEvents & EPOLLIN)
                 {
                     int accres;
                     accres = accept(sock, (sockaddr *)&this->addr, (socklen_t *)&addrlen);
