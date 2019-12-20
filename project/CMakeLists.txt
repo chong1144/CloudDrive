@@ -7,9 +7,11 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 link_directories(${CMAKE_SOURCE_DIR}/lib)
 link_directories(/usr/lib64/mysql)
+link_directories(/usr/include/node/openssl)
 
 configure_file(${CMAKE_SOURCE_DIR}/include/root_dir.h.in ${CMAKE_SOURCE_DIR}/include/root_dir.h)
 
+include_directories(/usr/include/node/openssl)
 include_directories(${CMAKE_SOURCE_DIR}/include)
 
 set(SRC_DIR ${CMAKE_SOURCE_DIR}/src)
@@ -19,7 +21,7 @@ set(MODULES
     Control
     Package
     # Test
-    # Database
+    Database
 )
 
 foreach(modules ${MODULES})
@@ -27,7 +29,7 @@ foreach(modules ${MODULES})
     set(LIBS ${LIBS} ${modules})
 endforeach(modules ${MODULES})
 
-# set(LIBS ${LIBS} crypto mysqlclient)
+set(LIBS ${LIBS} crypto mysqlclient)
 
 add_executable(Top Top.cpp)
 

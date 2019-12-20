@@ -32,7 +32,7 @@ bool control::createPipe(const string &pipe)
     if (mkfifo(pipe.c_str(), S_IFIFO | 0666) == -1)
     {
         string ErrorContent = "Fail to create pipe " + pipe;
-        l.writeLog(Log::ERROR, ErrorContent);
+        l.writeLog(Log::WARNING, ErrorContent);
         return false;
     }
 
@@ -57,35 +57,40 @@ void control::init(const string &configFile)
 
     // 初始化管道的参数并且创建管道
     if (!createPipe(c.getValue("Global", "path_fifo_ctod")))
-        exit(-1);
+        ;
     if (!createPipe(c.getValue("Global", "path_fifo_dtoc")))
-        exit(-1);
+        ;
     if (!createPipe(c.getValue("Global", "path_fifo_stod")))
-        exit(-1);
+        ;
     if (!createPipe(c.getValue("Global", "path_fifo_dtos")))
-        exit(-1);
+        ;
     if (!createPipe(c.getValue("Global", "path_fifo_rtod")))
-        exit(-1);
+        ;
     if (!createPipe(c.getValue("Global", "path_fifo_dtor")))
-        exit(-1);
+        ;
     if (!createPipe(c.getValue("Global", "path_fifo_ctor")))
-        exit(-1);
+        ;
     if (!createPipe(c.getValue("Global", "path_fifo_rtoc")))
-        exit(-1);
+        ;
     if (!createPipe(c.getValue("Global", "path_fifo_ctos")))
-        exit(-1);
+        ;
     if (!createPipe(c.getValue("Global", "path_fifo_stoc")))
-        exit(-1);
+        ;
+
+    l.writeLog(Log::INFO, "create pipes successfully!");
 
     // 打开管道 没有检查是否打开成功 关闭一些目前不需要的通道
     this->fifo_ctod = open(c.getValue("Global", "path_fifo_ctod").c_str(), O_WRONLY);
     this->fifo_dtoc = open(c.getValue("Global", "path_fifo_dtoc").c_str(), O_RDONLY);
+    l.writeLog(Log::INFO, "open ipc with database successfully!");
 
     this->fifo_ctos = open(c.getValue("Global", "path_fifo_ctos").c_str(), O_WRONLY);
     this->fifo_stoc = open(c.getValue("Global", "path_fifo_stoc").c_str(), O_RDONLY);
+    l.writeLog(Log::INFO, "open ipc with uploader successfully!");
 
     this->fifo_ctor = open(c.getValue("Global", "path_fifo_ctor").c_str(), O_WRONLY);
     this->fifo_rtoc = open(c.getValue("Global", "path_fifo_rtoc").c_str(), O_RDONLY);
+    l.writeLog(Log::INFO, "open ipc downloader successfully!");
 
     l.writeLog(Log::INFO, "control read config file successfully!");
 }
