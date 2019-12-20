@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 2.7)
 project(CloudDrive)
 
 set(CMAKE_CXX_STANDARD 11)
@@ -15,7 +15,7 @@ set(MODULES
     Utility
     filesystem
     Control
-    # database
+    database
 )
 
 foreach(modules ${MODULES})
