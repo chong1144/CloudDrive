@@ -1,1 +1,1 @@
-const char * root = "/mnt/d/w1752132/Week10/CloudDrive/project";
+const char * root = "/root/homework/week14/CloudDrive/project";

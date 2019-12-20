@@ -1,41 +1,22 @@
-#include "Package/Package.h"
-#include "Config.h"
-#include "Log.h"
-#include "Database.h"
-#include "root_dir.h"
+#include "../include/Database.h"
+#include <unistd.h>
+#include <signal.h>
+enum test_num{
+    SIGNUP_TEST,
+    SIGNIN_TEST,
+    UPLOAD_TEST,
+    SYN_TEST,
+    MOVE_TEST,
+    COPY_TEST,
+    DELERE_TEST,
+    MKDIR_TEST,
+    FILEINFO_TEST,
+    ALL
+};
 
-
-int main(int argc, char const *argv[])
+int main()
 {
-    string configFile = string(root) + "/Config/config.conf";
-    Config c(configFile);
-
-    string logFile = string(root) + "/Log/test.log";
-    Log l(logFile);
-
-    //l.writeLog(l.ERROR, "Nothing");
-
-    //test_database(c,l);
-    return 0;
-}
-
-
-
-void test_database(Config c,Log l)
-{
-    enum test_num{
-        SIGNUP_TEST,
-        SIGNIN_TEST,
-        UPLOAD_TEST,
-        SYN_TEST,
-        MOVE_TEST,
-        COPY_TEST,
-        DELERE_TEST,
-        MKDIR_TEST,
-        FILEINFO_TEST,
-        ALL
-    };
-
+    Config c("../Config/config.conf");
     int test;
      
     string path_fifo_ctod = c.getValue("Global","path_fifo_ctod");
@@ -214,5 +195,5 @@ void test_database(Config c,Log l)
        
     }
     
-
+    
 }

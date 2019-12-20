@@ -126,7 +126,7 @@ public:
     string FileIndex_GetBitmap(string hash);
     int FileIndex_UpdateRef(string hash,int Refcount);
     int FileIndex_UpdateBitmap(string hash,string Bitmap);
-    int Database::FileIndex_GetSize(string hash);
+    int FileIndex_GetSize(string hash);
 
     ~Database();
 };
