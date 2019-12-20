@@ -28,16 +28,20 @@ int main(int argc, char const *argv[])
                 switch (i)
                 {
                 case 0:
+                    l.writeLog(Log::INFO, "control process start!");
                     con = new control(configFile);
                     l.writeLog(Log::WARNING, "control process out!");
                     exit(0);
                     break;
                 case 1:
-                    db = new Database(configFile, string(root) + "/Log/database.log");
-                    db->Run();
-                    l.writeLog(Log::WARNING, "database process out!");
-                    exit(0);
+                    // l.writeLog(Log::INFO, "database process start!");
+                    // db = new Database(configFile, string(root) + "/Log/database.log");
+                    // db->Run();
+                    // l.writeLog(Log::WARNING, "database process out!");
+                    // exit(0);
                     break;
+                // case 2:
+
                 default:
                     break;
                 }
@@ -45,6 +49,11 @@ int main(int argc, char const *argv[])
             default:
                 break;
         }
+    }
+
+    while (1)
+    {
+        sleep(1);
     }
 
     delete con;

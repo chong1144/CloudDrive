@@ -78,10 +78,10 @@ Database::Database(string config_file,string log_file) : config(config_file), lo
     //open fifo
     fifo_ctod = open(config.getValue("Global", "path_fifo_ctod").c_str(), O_RDONLY);
     fifo_dtoc = open(config.getValue("Global", "path_fifo_dtoc").c_str(), O_WRONLY);
-    fifo_rtod = open(config.getValue("Global", "path_fifo_rtod").c_str(), O_RDONLY);
-    fifo_dtor = open(config.getValue("Global", "path_fifo_dtor").c_str(), O_WRONLY);
-    fifo_stod = open(config.getValue("Global", "path_fifo_stod").c_str(), O_RDONLY);
-    fifo_dtos = open(config.getValue("Global", "path_fifo_dtos").c_str(), O_WRONLY);
+    // fifo_rtod = open(config.getValue("Global", "path_fifo_rtod").c_str(), O_RDONLY);
+    // fifo_dtor = open(config.getValue("Global", "path_fifo_dtor").c_str(), O_WRONLY);
+    // fifo_stod = open(config.getValue("Global", "path_fifo_stod").c_str(), O_RDONLY);
+    // fifo_dtos = open(config.getValue("Global", "path_fifo_dtos").c_str(), O_WRONLY);
      
     if (fifo_ctod < 0 || fifo_dtoc < 0 || fifo_rtod < 0 || fifo_dtor < 0 || fifo_stod < 0 || fifo_dtor < 0)
     {

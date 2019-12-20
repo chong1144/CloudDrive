@@ -80,17 +80,17 @@ void control::init(const string &configFile)
     l.writeLog(Log::INFO, "create pipes successfully!");
 
     // 打开管道 没有检查是否打开成功 关闭一些目前不需要的通道
-    this->fifo_ctod = open(c.getValue("Global", "path_fifo_ctod").c_str(), O_WRONLY);
-    this->fifo_dtoc = open(c.getValue("Global", "path_fifo_dtoc").c_str(), O_RDONLY);
-    l.writeLog(Log::INFO, "open ipc with database successfully!");
+    // this->fifo_ctod = open(c.getValue("Global", "path_fifo_ctod").c_str(), O_WRONLY);
+    // this->fifo_dtoc = open(c.getValue("Global", "path_fifo_dtoc").c_str(), O_RDONLY);
+    // l.writeLog(Log::INFO, "open ipc with database successfully!");
 
-    this->fifo_ctos = open(c.getValue("Global", "path_fifo_ctos").c_str(), O_WRONLY);
-    this->fifo_stoc = open(c.getValue("Global", "path_fifo_stoc").c_str(), O_RDONLY);
-    l.writeLog(Log::INFO, "open ipc with uploader successfully!");
+    // this->fifo_ctos = open(c.getValue("Global", "path_fifo_ctos").c_str(), O_WRONLY);
+    // this->fifo_stoc = open(c.getValue("Global", "path_fifo_stoc").c_str(), O_RDONLY);
+    // l.writeLog(Log::INFO, "open ipc with uploader successfully!");
 
-    this->fifo_ctor = open(c.getValue("Global", "path_fifo_ctor").c_str(), O_WRONLY);
-    this->fifo_rtoc = open(c.getValue("Global", "path_fifo_rtoc").c_str(), O_RDONLY);
-    l.writeLog(Log::INFO, "open ipc downloader successfully!");
+    // this->fifo_ctor = open(c.getValue("Global", "path_fifo_ctor").c_str(), O_WRONLY);
+    // this->fifo_rtoc = open(c.getValue("Global", "path_fifo_rtoc").c_str(), O_RDONLY);
+    // l.writeLog(Log::INFO, "open ipc downloader successfully!");
 
     l.writeLog(Log::INFO, "control read config file successfully!");
 }
@@ -197,6 +197,8 @@ void control::waitForClient()
             l.writeLog(Log::ERROR, "epoll wait error");
             exit(-1);
         }
+        l.writeLog(Log::INFO, "Here for you");
+
         for (size_t i = 0; i < ret; i++)
         {
             candidateSock = ep_events[i].data.fd;
