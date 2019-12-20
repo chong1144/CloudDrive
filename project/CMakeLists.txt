@@ -18,7 +18,7 @@ set(MODULES
     Control
     # Test
     # database
-    # database
+    Database
 )
 
 foreach(modules ${MODULES})

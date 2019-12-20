@@ -1,22 +1,20 @@
-#include "Package/Package.h"
-#include "Config.h"
-#include "Log.h"
-// #include "Database.h"
-#include "root_dir.h"
-#include "FileOperations.h"
-
-
+#include "./include/Database.h"
+//#include "root_dir.h"
+#include "signal.h"
+// #include "FileOperations.h"
 
 int main(int argc, char const *argv[])
 {
-    string configFile = string(root) + "/Config/config.conf";
+    string configFile =  "./Config/config.conf";
     Config c(configFile);
 
-    string logFile = string(root) + "/Log/test.log";
+    string logFile = "./Log/test.log";
     Log l(logFile);
 
-    //l.writeLog(l.ERROR, "Nothing");
+    // FileOperations F(configFile);
 
+    //l.writeLog(l.ERROR, "Nothing");
+    Database db;
     //test_database(c,l);
     return 0;
 }
@@ -69,13 +67,12 @@ int main(int argc, char const *argv[])
 //     int pid = fork();
 //     if(pid != 0 )
 //     {
-//         Database database(string("../Config/config.conf"),string("../Log/database.log"));
-//         database.Run();
+//         //Database db;
+//         //database.Run();
 //         kill(pid,SIGTERM);
 //     }
 //     else
 //     {
-
 //         fifo_ctod=open(path_fifo_ctod.c_str(),O_WRONLY);
 //         fifo_dtoc=open(path_fifo_dtoc.c_str(),O_RDONLY);
         

@@ -1,4 +1,4 @@
-#include "Database.h"
+#include "../../include/Database.h"
 
 string generate_string(string src)
 {
@@ -183,7 +183,7 @@ bool Database::dir_exist(string Uid,string dirName,string path)
 {
      string cmd = "select * Files where Uid="+ \
     generate_string(Uid)+" and "+\
-    "Filename="+generate_string(Filename)+" and "+\
+    "Filename="+generate_string(dirName)+" and "+\
     "Path="+generate_string(path)+";";
 
 
@@ -641,7 +641,7 @@ int Database::Run()
                 if(header.p==PackageType::FILEINFO)
                 {
                     FileInfoBody *p = (FileInfoBody *)(temp);
-                    len = read(events[i].data.fd,bitmapRecvBuf+strlen(bitmapRecvBuf),p->size);
+                    len = read(events[i].data.fd,(char *)bitmapRecvBuf+strlen((char *)bitmapRecvBuf),p->size);
                     if(len<=0)
                     {
                         log.writeLog(Log::ERROR, string("fifo closed ")+to_string(events[i].data.fd));
@@ -831,8 +831,8 @@ int Database::do_mysql_cmd(UniformHeader h)
 
          //生成返回包的身
         FileInfoBody *res = new FileInfoBody[1];
-        strcpy(res->md5,body->md5);
-
+        strcpy(res->md5,body->MD5);
+    
         
 
         //若文件已存在
@@ -841,7 +841,7 @@ int Database::do_mysql_cmd(UniformHeader h)
             FileIndex_Refinc(body->MD5);
             
             
-            pair<int,int> ref_complete =  FileIndex_Get_Ref_Complete(body->md5);
+            pair<int,int> ref_complete =  FileIndex_Get_Ref_Complete(body->MD5);
            
             res->completed = ref_complete.second;
            
@@ -858,7 +858,7 @@ int Database::do_mysql_cmd(UniformHeader h)
         Files_Insert(body->Session,body->fileName,body->path,body->MD5,0);
 
 
-        string bitmap = FileIndex_GetBitmap(body->md5);
+        string bitmap = FileIndex_GetBitmap(body->MD5);
         res->exist = 1;
         res->size = bitmap.size();
        
@@ -879,7 +879,7 @@ int Database::do_mysql_cmd(UniformHeader h)
         //生成返回包的头
         //包的长度此时还无法计算
 
-        log.writeLog(Log::INFO, "[Mkdir Req] Uid:"+string(body->Session)+", DirName:"+string(body->fileName)+", Path:"+string(body->path));
+        log.writeLog(Log::INFO, "[Mkdir Req] Uid:"+string(body->Session)+", DirName:"+string(body->dirName)+", Path:"+string(body->path));
 
 
          //生成返回包的头
@@ -927,7 +927,6 @@ int Database::do_mysql_cmd(UniformHeader h)
 
         log.writeLog(Log::INFO, "[SYN Req] Uid:"+string(body->Session)+", path:"+string(body->path));
 
-        //获取路径下的子文件和文件夹 结果放在ExternInformation中，存放格式为： 文件/文件夹名,是否为文件夹 空格 文件/文件夹名,是否为文件夹 .....
         vector<pair<string,string>> children;
         
         children = get_child_files(body->Session,body->path);
@@ -943,7 +942,7 @@ int Database::do_mysql_cmd(UniformHeader h)
 
             temp += filename_isdir.first+","+filename_isdir.second+" ";
         }
-        strcpy(res->ExternInformation,temp.c_str());
+       
         res->code = SYN_SUCCESS;
         log.writeLog(Log::INFO,"[SYN Req Success]");
         //将包加入写队列
@@ -1086,8 +1085,7 @@ int Database::do_mysql_cmd(UniformHeader h)
                 
         FileIndex_UpdateBitmap(body->md5,bitmap);
 
-        //将包加入写队列 
-        res_queue.push(res);
+      
 
         delete body;
     }

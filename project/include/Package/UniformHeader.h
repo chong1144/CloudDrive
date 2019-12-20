@@ -84,13 +84,13 @@ struct UniformHeader
     UniformHeader(const PackageType &pIn);
 };
 
-UniformHeader::UniformHeader()
-{
-    len = 0;
-}
+// UniformHeader::UniformHeader()
+// {
+//     len = 0;
+// }
 
-UniformHeader::UniformHeader(const PackageType &pIn) : p(pIn)
-{
-    // 填充包的大小
-    len = PackageSizeMap.at(p);
-}
+// UniformHeader::UniformHeader(const PackageType &pIn) : p(pIn)
+// {
+//     // 填充包的大小
+//     len = PackageSizeMap.at(p);
+// }
