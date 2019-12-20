@@ -1,21 +1,40 @@
 #include "Uploader.h"
 
-Uploader::Uploader (string config_file, string log_file) :config (config_file), fileLog (log_file), fileout (FileIOPath)
+Uploader::Uploader (const string& config_file) :config (config_file)
 {
+    this->init(config_file);
+    this->fileout.init(config_file);
     epfd = epoll_create1 (0);
     if (epfd == -1) {
         fileLog.writeLog (Log::ERROR, string ("epoll_create1 error") + strerror (errno));
         exit (-1);
     }
     //open fifo
+    this->openfifo();
+
+    this->startServer();
+
+    // 
+    EpollAdd(fifo_db_r, EPOLLIN);
+    EpollAdd(this->socklisten, EPOLLIN);
+    EpollAdd(this->fifo_ctrl_r, EPOLLIN);
+    this->run();
+
+
+}
+
+void Uploader::openfifo()
+{
+    //open fifo
     fifo_db_w = open (config.getValue ("Global", "path_fifo_rtod").c_str (), O_WRONLY);
     fifo_db_r = open (config.getValue ("Global", "path_fifo_dtor").c_str (), O_RDONLY);
     fifo_ctrl_w = open (config.getValue ("Global", "path_fifo_rtoc").c_str (), O_WRONLY);
     fifo_ctrl_r = open (config.getValue ("Global", "path_fifo_ctor").c_str (), O_RDONLY);
+    if(fifo_db_w==-1||fifo_db_r==-1||fifo_ctrl_r==-1||fifo_ctrl_w==-1){
+        fileLog.writeLog(Log::ERROR, string("open fifo error, exit!!!"));
+        exit(-1);
+    }
 }
-
-
-
 
 void Uploader::init(const string& configFile)
 {
@@ -48,14 +67,14 @@ void Uploader::startServer()
     addr.sin_port = htons(this->port);
 
     // 绑定地址
-    ret = bind(sock, (sockaddr *)&addr, sizeof(addr));
+    ret = bind(socklisten, (sockaddr *)&addr, sizeof(addr));
     if (ret < 0)
     {
         fileLog.writeLog(Log::ERROR, "bind error");
         exit(-1);
     }
 
-    ret = listen(sock, numListen);
+    ret = listen(socklisten, numListen);
     if (ret < 0)
     {
         fileLog.writeLog(Log::ERROR, "listen error");
@@ -104,7 +123,7 @@ void Uploader::EpollDel (int fd)
 }
 
 // 向DB模块发送获取文件信息的请求
-// 此函数仅在收到来自CTRL的请求后调用，head以及uploadreqbody都未变，直接转发即可
+// 此函数仅在收到来自Client的请求后调用，head以及uploadreqbody都未变，直接转发即可
 int Uploader::sendReqFileInfotoDB ()
 {
     int len;
@@ -243,7 +262,7 @@ int Uploader::handleUploadReq(socket_t sockclnt)
 {
     fileLog.writeLog(Log::INFO, string("handleUploadReq begin"));
     int len;
-    if ((len = read(fifo_ctrl_r, &uploadReqPacket, headPacket.len)) != headPacket.len)
+    if ((len = read(sockclnt, &uploadReqPacket, headPacket.len)) != headPacket.len)
     {
         fileLog.writeLog(Log::ERROR, string("handleUploadReq 读取reqBody from Ctrl长度错误 len: ") + to_string(len));
         return -1;
@@ -271,6 +290,11 @@ int Uploader::handlePush (const string& filehash, socket_t sockclnt)
         fileLog.writeLog (Log::ERROR, string ("handlePush 读取pushBody from client长度错误 len: ") + to_string (len));
         return -1;
     }
+    if(string(pushPacket.md5,MD5Length)!=filehash){
+        fileLog.writeLog(Log::WARNING, string("handlePush 读取到非上传文件的包"));
+        return -1;
+    }
+
     auto& chunk = fileChunk_map[make_pair (filehash, sockclnt)];
     memcpy (chunk.content + chunk.size, pushPacket.content, pushPacket.len);
     chunk.size += pushPacket.len;
@@ -392,7 +416,7 @@ int Uploader::handlePacketFromClient(socket_t sockclnt)
 {
     fileLog.writeLog (Log::INFO, string ("handlePacketFromClient begin"));
     int len;
-    if ((len = read (fifo_ctrl_r, &headPacket, headlen)) != headlen) {
+    if ((len = read (sockclnt, &headPacket, headlen)) != headlen) {
         fileLog.writeLog (Log::ERROR, string ("handlePacketFromClient 读取header from client长度错误 len: ") + to_string (len));
         return -1;
     }
@@ -523,23 +547,15 @@ void Uploader::sendDoneToClient (const string& filehash)
 // }
 // 文件传输完成后的扫尾
 void Uploader::uploadDone (const string& filehash)
-{
+{   
     sendReqSaveFileInfotoDB (filehash);
     sendDoneToClient (filehash);
+
 }
 
 // 
 int Uploader::run ()
 {
-    int epfd = epoll_create1 (0);
-    if (epfd == -1) {
-        fileLog.writeLog (Log::ERROR, string ("in run: epoll_create1 error") + strerror (errno));
-        exit (-1);
-    }
-    epoll_event ep_events[MAXEVENTS];
-    // EpollAdd (this->fifo_ctrl_r, EPOLLIN);
-    EpollAdd (this->fifo_db_r, EPOLLIN);
-    EpollAdd(this->socklisten, EPOLLIN);
 
     int epcnt;
     while (true) {
@@ -584,7 +600,7 @@ int Uploader::run ()
             // 从client端来的包
             for (auto& sock:allSet){
                 if(ep_ev.data.fd==sock){
-                    if(ep_ev.events&EPOLLERR)                    {
+                    if(ep_ev.events&EPOLLERR){
                         fileLog.writeLog(Log::ERROR, string("EPOLLERR socket:") + to_string(sock));
                         exit(-1);
                     }
@@ -597,10 +613,4 @@ int Uploader::run ()
             fileLog.writeLog (Log::WARNING, string ("there is a fd that was not handled"));
         }
     }
-
-
-
-
-
-
 }

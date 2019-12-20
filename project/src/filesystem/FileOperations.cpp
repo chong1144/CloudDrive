@@ -1,5 +1,8 @@
 #include "FileOperations.h"
 
+FileOperations::FileOperations()
+{}
+
 FileOperations::FileOperations(const string &ConfigFile)
 {
     Config c(ConfigFile);
@@ -11,6 +14,15 @@ FileOperations::FileOperations(const string &ConfigFile)
 
 FileOperations::~FileOperations()
 {
+}
+
+void FileOperations::init(const string& ConfigFile)
+{
+    Config c(ConfigFile);
+
+    prefixPos = c.getValue("WriteRead", "prefix");
+
+    l.init(c.getValue("WriteRead", "fileSystemLogPosition"));
 }
 
 FileStatusCodes FileOperations::IsExists(const MD5Code &md5)
@@ -111,6 +123,32 @@ int FileOperations::WriteFile (const FileChunk& filechunk)
     return filechunk.size;
 }
 
+int FileOperations::ReadFile(FileChunk& filechunk)
+{
+    if(this->IsExists(filechunk.md5) == FILE_UNEXISTS)
+    {
+        string ErrorContent = "Fail to find " + this->prefixPos + string(filechunk.md5);
+        l.writeLog(Log::ERROR, ErrorContent);
+        return FILE_UNEXISTS;
+    }
+
+    // 读入文件的位置
+    const string filePath = this->prefixPos + string(filechunk.md5) + "/" + std::to_string(filechunk.chunkNo);
+    ifstream fin(filePath.c_str(), ios::in | ios::binary);
+    if(!fin.is_open())
+    {
+        string ErrorContent = "Fail to open " + filePath;
+        l.writeLog(Log::ERROR, ErrorContent);
+        return FILE_UNEXISTS;
+    }
+    // uint16_t readSize = 0;
+    fin.read(filechunk.content, ChunkSize);
+    filechunk.size = fin.gcount();
+    fin.close();
+
+    string InfoContent = "Read " + filePath + " successfully!";
+    l.writeLog(Log::INFO, InfoContent);
+}
 
 /*
 * 

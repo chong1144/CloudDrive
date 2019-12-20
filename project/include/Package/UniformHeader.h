@@ -20,6 +20,8 @@ enum PackageType
     DOWNLOAD_REQ,   // 下载文件的信号 第一次告知服务器需要下载的文件的路径、名称
     DOWNLOAD_RESP,  // 下载文件的结果
     DOWNLOAD_PUSH,  // 服务器端给客户端某一个块
+    DOWNLOAD_FETCH, // 客户端请求的某一块
+    DOWNLOAD_DONE,  // 客户端通知服务端完成下载
 
     SYN_REQ,         // 同步信号 客户端请求同步某一路径的文件
     SYN_RESP,        // 同步信号 回应同步结果 包括文件下的文件个数
@@ -53,7 +55,8 @@ const static std::map<PackageType, uint16_t> PackageSizeMap{
     {PackageType::DOWNLOAD_REQ, sizeof (DownloadReqBody)},
     {PackageType::DOWNLOAD_RESP, sizeof (DownloadRespBody)},
     {PackageType::DOWNLOAD_PUSH, sizeof (DownloadPushBody)},
-
+    {PackageType::DOWNLOAD_FETCH, sizeof (DownloadFetchBody)},
+    {PackageType::DOWNLOAD_DONE, sizeof (DownloadDoneBody)},
     {PackageType::SYN_REQ, sizeof (SYNReqBody)},
     {PackageType::SYN_RESP, sizeof (SYNRespBody)},
     {PackageType::SYN_PUSH, sizeof (SYNPushBody)},

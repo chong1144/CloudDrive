@@ -10,7 +10,8 @@ const uint16_t IPLength = 32;
 
 const uint16_t pathLength = 256;
 const uint16_t fileNameLength = 256;
-const uint16_t ChunkSize = 1024;
+const uint32_t ChunkSize = 1024*1024;
+const uint32_t ContentSize = 1024;
 const uint16_t nameLength = 256;
 const uint16_t MD5Length = 64;
 
@@ -29,7 +30,8 @@ const uint16_t MD5Length = 64;
 #include "DownloadReqBody.h"
 #include "DownloadRespBody.h"
 #include "DownloadPushBody.h"
-
+#include "DownloadFetchBody.h"
+#include "DownloadDoneBody.h"
 #include "SYNReqBody.h"
 #include "SYNRespBody.h" 
 #include "SYNPushBody.h"

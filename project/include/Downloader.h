@@ -37,6 +37,16 @@ const int MAXEVENTS = 20;
 
 class Downloader
 {
+    // 先发来的请求先记录在query队列中，等待数据库返回文件信息
+	// 收到CTRL的上传请求添加，收到数据库发来的文件信息则删除
+	queue<socket_t> queryQue;
+    set<socket_t> allSet;
+    set<socket_t> downloadSet;
+    set<socket_t> idleSet;
+    set<socket_t> pauseSet;
+
+	map<socket_t, FileHash> sockFileMap;
+
     //database model to/from upload model
     int fifo_db_w;
     int fifo_db_r;
@@ -46,9 +56,13 @@ class Downloader
     int fifo_ctrl_r;
 
     UniformHeader headPacket;
+    DownloadFetchBody fetchPacket;
+    DownloadDoneBody donePacket;
     DownloadPushBody pushPacket;
     DownloadReqBody downloadreqPacket;
-    FileInfoBody fileinfoPacket;
+    DownloadRespBody respPacket;
+    
+    FileInfoBody fileInfoPacket;
 
     Log fileLog;
 
@@ -64,9 +78,46 @@ class Downloader
     string ip;
     uint8_t numListen;
     uint8_t maxEvent;
-    uint32_t sock;
     sockaddr_in addr;
 
 public:
-    Downloader (string)
+    Downloader (const string& config_file);
+    void init(const string&);
+    void openfifo();
+    void startServer();
+
+    void EpollAdd(int fd, uint32_t events);
+
+    void EpollDel(int fd);
+
+    int EpollWait();
+
+    int sendReqFileHashToDB();
+
+    int sendPushToClient(const string& filehash, uint16_t chunkNo, socket_t sockclnt);
+
+    void doneloadDone(const string&filehash);
+
+    int run();
+
+    int handleNewConnection(socket_t sockclnt);
+
+    int handlePacketFromDB();
+
+    int handlePacketFromCTRL();
+
+    int handlePacketFromClient(socket_t sockclnt);
+
+    int handleDownloadReq(socket_t sockclnt);
+
+    int handleFetchReq(socket_t sockclnt);
+
+    int handleDoneReq(socket_t sockclnt);
+
+    int sendRespToClient(socket_t sockclnt);
+
+    int sendReqToDB();
+
+
+
 };
