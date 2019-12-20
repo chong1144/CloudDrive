@@ -98,7 +98,7 @@ private:
     char bitmapSendBuf [BITMAP_SIZE*3];
 
 public:
-    Database(){};
+    
     Database(string config_file,string log_file);
     int Run();
 

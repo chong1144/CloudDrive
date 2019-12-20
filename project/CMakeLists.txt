@@ -19,6 +19,8 @@ set(MODULES
     Utility
     filesystem
     Control
+    # Test
+    Database
     Package
     # Test
     Database
