@@ -1,4 +1,4 @@
-#include "../../include/Database.h"
+#include "Database.h"
 
 string generate_string(string src)
 {
@@ -181,7 +181,7 @@ int Database::Users_Update(string Username,string IP)
 
 bool Database::dir_exist(string Uid,string dirName,string path)
 {
-     string cmd = "select * Files where Uid="+ \
+     string cmd = "select * from Files where Uid="+ \
     generate_string(Uid)+" and "+\
     "Filename="+generate_string(dirName)+" and "+\
     "Path="+generate_string(path)+";";
@@ -867,8 +867,9 @@ int Database::do_mysql_cmd(UniformHeader h)
 
         //将bitmap 写入缓冲区
         strcat(bitmapSendBuf,bitmap.c_str());
-        
+         
         delete body;
+         
     }
 
     //若为新建文件夹请求 
@@ -876,8 +877,6 @@ int Database::do_mysql_cmd(UniformHeader h)
     {
         MkdirBody *body = (MkdirBody *)cmd_queue.front();
 
-        //生成返回包的头
-        //包的长度此时还无法计算
 
         log.writeLog(Log::INFO, "[Mkdir Req] Uid:"+string(body->Session)+", DirName:"+string(body->dirName)+", Path:"+string(body->path));
 
@@ -913,6 +912,7 @@ int Database::do_mysql_cmd(UniformHeader h)
     }
 
     //若为文件目录同步请求
+    //返回格式，先返回一个resp包，包里面是孩子节点个数n,然后发送n个SYNpush包
     else if(h.p == PackageType::SYN_REQ)
     {
         SYNReqBody *body = (SYNReqBody *)cmd_queue.front(); 
@@ -932,21 +932,28 @@ int Database::do_mysql_cmd(UniformHeader h)
         children = get_child_files(body->Session,body->path);
 
         res->childNum = children.size();
-        string temp="";
-        pair<string,string> filename_isdir;
-
-        while(!children.empty())
-        {
-            filename_isdir = children.back();
-            children.pop_back();
-
-            temp += filename_isdir.first+","+filename_isdir.second+" ";
-        }
+        
+        
        
         res->code = SYN_SUCCESS;
         log.writeLog(Log::INFO,"[SYN Req Success]");
         //将包加入写队列
         res_queue.push(res);
+
+        int i = 0;
+        while(!children.empty())
+        {
+            pair<string,string> filename_isdir = children.back();
+            children.pop_back();
+            SYNPushBody *p = new SYNPushBody[1];
+            p->id = i++;
+            strcpy(p->Session,body->Session);
+            strcpy(p->name,filename_isdir.first.c_str());
+            p->isFile = !atoi(filename_isdir.second.c_str());
+            res_queue.push(p);
+        }
+
+        delete body;
     }
 
     //若为文件/文件夹拷贝命令
@@ -1139,6 +1146,15 @@ int Database::send_back(UniformHeader header)
         SYNRespBody *body = (SYNRespBody*)res_queue.front();
         write(fifo_dtoc,&header,sizeof(header));
         write(fifo_dtoc,body,sizeof(SYNRespBody));
+        int i=0;
+        for(i=0;i<body->childNum;i++)
+        {
+            res_queue.pop();
+            SYNPushBody *p = (SYNPushBody *)res_queue.front();
+            write(fifo_dtoc,p,sizeof(SYNPushBody));
+            delete p;
+        }
+
         delete body;
     }
     else if (header.p == PackageType::MKDIR_RES)
@@ -1151,13 +1167,17 @@ int Database::send_back(UniformHeader header)
     else if (header.p == PackageType::FILEINFO)
     {
         FileInfoBody *body = (FileInfoBody*)res_queue.front();
-        res_queue.pop();
         write(fifo_dtor,&header,sizeof(header));
         write(fifo_dtor,body,sizeof(FileInfoBody));
         write(fifo_dtor,bitmapSendBuf,body->size);
         memmove(bitmapSendBuf,bitmapSendBuf+body->size,sizeof(bitmapSendBuf) - (body->size));
+        
         delete body;
+        
     }
+
+    
+    
     
     
 

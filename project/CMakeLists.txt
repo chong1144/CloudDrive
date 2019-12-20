@@ -18,7 +18,7 @@ set(MODULES
     filesystem
     Control
     # Test
-    # Database
+    Database
     Package
 )
 

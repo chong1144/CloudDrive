@@ -1,4 +1,4 @@
-#include "../../include/Log.h"
+#include "Log.h"
 #include <iostream>
 #include <fstream>
 #include <sys/timeb.h>
