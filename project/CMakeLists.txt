@@ -17,9 +17,9 @@ set(MODULES
     Utility
     filesystem
     Control
+    Package
     # Test
     # Database
-    Package
 )
 
 foreach(modules ${MODULES})
@@ -27,7 +27,7 @@ foreach(modules ${MODULES})
     set(LIBS ${LIBS} ${modules})
 endforeach(modules ${MODULES})
 
-set(LIBS ${LIBS} crypto mysqlclient)
+# set(LIBS ${LIBS} crypto mysqlclient)
 
 add_executable(Top Top.cpp)
 

@@ -23,3 +23,5 @@ project/filesystem/FileSystem
 */*/build/*
 */build/*
 project/build/*
+
+.vscode/*
