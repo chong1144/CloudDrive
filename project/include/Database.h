@@ -1,3 +1,5 @@
+#pragma once
+
 #include "Package/Package.h"
 #include "Config.h"
 #include "Log.h"
@@ -15,7 +17,7 @@
 #include <string.h>
 #include <ctime>
 #include <map>
-#include<mysql/mysql.h>
+#include <mysql/mysql.h>
 #include <unistd.h>
 
 using std::cout;
@@ -92,10 +94,11 @@ private:
     Log log;
 
     //bitmap buffer
-    char *bitmapRecvBuf [BITMAP_SIZE*3];
-    char *bitmapSendBuf [BITMAP_SIZE*3];
+    char bitmapRecvBuf [BITMAP_SIZE*3];
+    char bitmapSendBuf [BITMAP_SIZE*3];
 
 public:
+    Database(){};
     Database(string config_file,string log_file);
     int Run();
 

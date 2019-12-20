@@ -22,6 +22,7 @@ private:
     configValue cv;
 
 public:
+    Config(){};
     Config(const string &configFile);
     ~Config();
     string getValue(const string &level, const string &attribute);

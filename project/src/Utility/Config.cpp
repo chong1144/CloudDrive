@@ -1,4 +1,4 @@
-#include "Config.h"
+#include "../../include/Config.h"
 
 using std::cerr;
 using std::cout;

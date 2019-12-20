@@ -18,7 +18,7 @@ set(MODULES
     Control
     # Test
     # database
-    # database
+    Database
 )
 
 foreach(modules ${MODULES})
@@ -27,7 +27,7 @@ foreach(modules ${MODULES})
 endforeach(modules ${MODULES})
 
 
-# add_executable(Top Top.cpp)
+add_executable(Top Top.cpp)
 
-# target_link_libraries(Top ${LIBS})
+target_link_libraries(Top ${LIBS})
 
