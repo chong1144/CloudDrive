@@ -82,10 +82,10 @@ void control::init(const string &configFile)
     this->fifo_dtoc = open(c.getValue("Global", "path_fifo_dtoc").c_str(), O_RDONLY);
 
     this->fifo_ctos = open(c.getValue("Global", "path_fifo_ctos").c_str(), O_WRONLY);
-    // this->fifo_stoc = open(c.getValue("Global", "path_fifo_stoc").c_str(), O_RDONLY);
+    this->fifo_stoc = open(c.getValue("Global", "path_fifo_stoc").c_str(), O_RDONLY);
 
     this->fifo_ctor = open(c.getValue("Global", "path_fifo_ctor").c_str(), O_WRONLY);
-    // this->fifo_rtoc = open(c.getValue("Global", "path_fifo_rtoc").c_str(), O_RDONLY);
+    this->fifo_rtoc = open(c.getValue("Global", "path_fifo_rtoc").c_str(), O_RDONLY);
 
     l.writeLog(Log::INFO, "control read config file successfully!");
 }
@@ -163,6 +163,7 @@ void control::waitForClient()
 
     // 将管道加入 epoll 监视
     this->EpollAdd(epfd, this->fifo_dtoc, EPOLLIN);
+    // ???? 
 
     // 申请 epoll_event*
     epoll_event *ep_events = new epoll_event[maxEvent];
@@ -208,7 +209,7 @@ void control::waitForClient()
                         exit(-1);
                     }
                     // 设置非阻塞的方法 禁用目前
-                    if (0)
+                    if (1)
                     {
                         int flag = fcntl(accres, F_GETFL);
                         fcntl(accres, flag | O_NONBLOCK);
@@ -281,6 +282,7 @@ void control::waitForClient()
                 //     this->EpollDel(epfd, candidateSock);
 
                 //     break;
+
                 // for d
                 case PackageType::SIGNIN:
                 case PackageType::SIGNUP:
@@ -288,6 +290,7 @@ void control::waitForClient()
                 case PackageType::COPY:
                 case PackageType::MOVE:
                 case PackageType::DELETE:
+                case PackageType::MKDIR:
                     write(this->fifo_ctod, &u, sizeof(u));
 
                     readres = read(candidateSock, packet, u.len);

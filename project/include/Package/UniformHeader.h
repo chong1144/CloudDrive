@@ -29,10 +29,13 @@ enum PackageType
 
     COPY,            // 拷贝文件
     COPY_RES,
+
     MOVE,            // 复制文件
     MOVE_RES,
+    
     DELETE,          // 删除文件
     DELETE_RES,
+    
     MKDIR,          // 新建文件夹
     MKDIR_RES
 

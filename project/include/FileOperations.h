@@ -26,11 +26,11 @@ struct FileChunk
 
 enum FileStatusCodes
 {
-    FILE_EXISTS = 1,
-    FILE_UNEXISTS = -1,
-    WRITE_FAIL = -2,
-    MKDIR_FAIL = -3,
-    MKDIR_SUCCESS = 2
+    FFILE_EXISTS = 1,
+    FFILE_UNEXISTS = -1,
+    FWRITE_FAIL = -2,
+    FMKDIR_FAIL = -3,
+    FMKDIR_SUCCESS = 2
 };
 
 

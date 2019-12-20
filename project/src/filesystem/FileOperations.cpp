@@ -27,10 +27,10 @@ FileStatusCodes FileOperations::IsExists(const MD5Code &md5)
     while ((entry = readdir(fp)))
     {
 		if (!strncmp (entry->d_name, md5, 32))
-            return FILE_EXISTS;
+            return FFILE_EXISTS;
     }
 
-    return FILE_UNEXISTS;
+    return FFILE_UNEXISTS;
 }
 
 FileStatusCodes FileOperations::Mkdir(const MD5Code &md5)
@@ -40,10 +40,10 @@ FileStatusCodes FileOperations::Mkdir(const MD5Code &md5)
     {
         string ErrorContent = "Fail to mkdir " + DirPath;
         l.writeLog(Log::ERROR, ErrorContent);
-        return MKDIR_FAIL;
+        return FMKDIR_FAIL;
     }
 
-    return MKDIR_SUCCESS;
+    return FMKDIR_SUCCESS;
 }
 
 
@@ -54,9 +54,9 @@ FileStatusCodes FileOperations::Mkdir(const MD5Code &md5)
 int FileOperations::WriteFile(const MD5Code &md5, const UploadPushBody &packet)
 {
     // 如果该文件夹不存在则新建文件夹
-    if (this->IsExists(md5) == FILE_UNEXISTS)
+    if (this->IsExists(md5) == FFILE_UNEXISTS)
     {
-        if(this->Mkdir(md5) == MKDIR_FAIL)
+        if(this->Mkdir(md5) == FMKDIR_FAIL)
         {
             // safety gaurdence
             exit(-1);
@@ -70,7 +70,7 @@ int FileOperations::WriteFile(const MD5Code &md5, const UploadPushBody &packet)
     {
         string ErrorContent = "Fail to open " + filePath;
         l.writeLog(Log::ERROR, ErrorContent);
-        return WRITE_FAIL;
+        return FWRITE_FAIL;
     }
     
     fout.write(packet.content, packet.len);
@@ -85,9 +85,9 @@ int FileOperations::WriteFile(const MD5Code &md5, const UploadPushBody &packet)
 int FileOperations::WriteFile (const FileChunk& filechunk)
 { 
     // 如果该文件夹不存在则新建文件夹
-    if (this->IsExists (filechunk.md5) == FILE_UNEXISTS) {
+    if (this->IsExists (filechunk.md5) == FFILE_UNEXISTS) {
         l.writeLog (Log::INFO, string ("MKDIR_FAIL"));
-		if (this->Mkdir (filechunk.md5) == MKDIR_FAIL) {
+		if (this->Mkdir (filechunk.md5) == FMKDIR_FAIL) {
             // safety gaurdence
             l.writeLog (Log::ERROR, string ("MKDIR_FAIL EXIT!!!"));
             exit (-1);
@@ -100,7 +100,7 @@ int FileOperations::WriteFile (const FileChunk& filechunk)
     if (!fout.is_open ()) {
         string ErrorContent = "Fail to open " + filePath;
         l.writeLog (Log::ERROR, ErrorContent);
-        return WRITE_FAIL;
+        return FWRITE_FAIL;
     }
 
     fout.write (filechunk.content, filechunk.size);
@@ -119,11 +119,11 @@ int FileOperations::WriteFile (const FileChunk& filechunk)
 int FileOperations::ReadFile(const MD5Code &md5, const uint16_t &id, DownloadPushBody &packet)
 {
     // 未能找到相应文件
-    if(this->IsExists(md5) == FILE_UNEXISTS)
+    if(this->IsExists(md5) == FFILE_UNEXISTS)
     {
         string ErrorContent = "Fail to find " + this->prefixPos + string(md5);
         l.writeLog(Log::ERROR, ErrorContent);
-        return FILE_UNEXISTS;
+        return FFILE_UNEXISTS;
     }
 
     // 读入文件的位置
@@ -133,7 +133,7 @@ int FileOperations::ReadFile(const MD5Code &md5, const uint16_t &id, DownloadPus
     {
         string ErrorContent = "Fail to open " + filePath;
         l.writeLog(Log::ERROR, ErrorContent);
-        return FILE_UNEXISTS;
+        return FFILE_UNEXISTS;
     }
     uint16_t readSize = 0;
     fin.read(packet.content, ChunkSize);
