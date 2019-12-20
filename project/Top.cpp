@@ -1,20 +1,20 @@
-#include "./include/Database.h"
-//#include "root_dir.h"
+// #include "Database.h"
+#include "root_dir.h"
 #include "signal.h"
-// #include "FileOperations.h"
+#include "FileOperations.h"
 
 int main(int argc, char const *argv[])
 {
-    string configFile =  "./Config/config.conf";
+    string configFile =  string(root) + "/Config/config.conf";
     Config c(configFile);
 
-    string logFile = "./Log/test.log";
+    string logFile =   string(root) + "/Log/test.log";
     Log l(logFile);
 
-    // FileOperations F(configFile);
+    FileOperations F(configFile);
 
     //l.writeLog(l.ERROR, "Nothing");
-    Database db;
+    // Database db;
     //test_database(c,l);
     return 0;
 }

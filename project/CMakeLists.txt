@@ -6,6 +6,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 # set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 link_directories(${CMAKE_SOURCE_DIR}/lib)
+link_directories(/usr/lib64/mysql)
 
 configure_file(${CMAKE_SOURCE_DIR}/include/root_dir.h.in ${CMAKE_SOURCE_DIR}/include/root_dir.h)
 
@@ -17,8 +18,8 @@ set(MODULES
     filesystem
     Control
     # Test
-    # database
-    Database
+    # Database
+    Package
 )
 
 foreach(modules ${MODULES})
@@ -26,6 +27,7 @@ foreach(modules ${MODULES})
     set(LIBS ${LIBS} ${modules})
 endforeach(modules ${MODULES})
 
+set(LIBS ${LIBS} crypto mysqlclient)
 
 add_executable(Top Top.cpp)
 
