@@ -41,9 +41,12 @@ private:
     Log l;
 
 public:
+    // 默认构造函数，但是需要使用init完成初始化
+    FileOperations();
     FileOperations(const string &ConfigFile);
     ~FileOperations();
 
+    void init(const string& ConfigFile);
     // 查找是否有该文件
     FileStatusCodes IsExists(const MD5Code &md5);
     // 建立文件夹
@@ -54,4 +57,6 @@ public:
     int WriteFile (const FileChunk& filechunk);
     // 读取相应文件
     int ReadFile(const MD5Code &md5, const uint16_t &id, DownloadPushBody &packet);
+
+    int ReadFile(FileChunk& filechunk);
 };

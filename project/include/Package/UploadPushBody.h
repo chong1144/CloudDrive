@@ -14,8 +14,9 @@
 
 struct UploadPushBody
 {
+    char md5[MD5Length];
     uint16_t id; //0-1023
-    char content[ChunkSize];
+    char content[ContentSize];
     uint16_t len;
     bool last;
 };

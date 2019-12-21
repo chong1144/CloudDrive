@@ -126,11 +126,7 @@ class Uploader
 	int fifo_ctrl_w;
 	int fifo_ctrl_r;
 
-	//readfile model to/from upload model
-	//int fifo_readfile_w;
-	//int fifo_readfile_r;
-
-
+	// 以下各个包，统一创建，公共使用
 	UniformHeader headPacket;
 	UploadReqBody uploadReqPacket;
 	UploadRespBody respPacket;
@@ -139,28 +135,30 @@ class Uploader
 	UploadDoneBody uploadDonePacket;
 	FileInfoBody fileInfoPacket;
 	
-
+	// log module
 	Log fileLog;
-	//config
+	// config
 	Config config;
+	// write module
+	FileOperations fileout;
+
 	// epollfd
 	int epfd;
 	epoll_event ep_events[MAXEVENTS];
 
 	// listen socket
 	int socklisten;
-	FileOperations fileout;
 
 	uint32_t port;
     string ip;
     uint8_t numListen;
     uint8_t maxEvent;
-	uint32_t sock;
     sockaddr_in addr;
 
 public:
-	Uploader(string config_file, string log_file)
-		: config(config_file), fileLog(log_file), fileout(FileIOPath){};
+	Uploader(const string& config_file);
+
+	void openfifo();
 
 	void init(const string&);
     
@@ -173,7 +171,7 @@ public:
 	void EpollDel (int fd);
 
 	// 向DB模块发送获取文件信息的请求
-	// 此函数仅在收到来自CTRL的请求后调用，head以及uploadreqbody都未变，直接转发即可
+	// 此函数仅在收到来自客户端的上传请求后调用，head以及uploadreqbody都未变，直接转发即可
 	int sendReqFileInfotoDB ();
 	// 向DB模块发送保存文件信息的请求
 	int sendReqSaveFileInfotoDB (const string& filehash);
