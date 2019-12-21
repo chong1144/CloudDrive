@@ -63,7 +63,18 @@ class CTRL
     SigninresBody   signinresPacket;
     SignupBody      signupPacket;
     SignupresBody   signupresPacket;
-    
+    CopyBody        copyPacket;
+    DeleteBody      deletePacket;
+    MoveBody        movePacket;
+    MkdirBody       mkdirPacket;
+    SYNReqBody      synReqPacket;
+    CopyRespBody        copyRespPacket;
+    DeleteRespBody      deleteRespPacket;
+    MkdirRespBody       mkdirRespPacket;
+    MoveRespBody        moveRespPacket;
+    SYNRespBody      synRespPacket;
+
+
     int epfd;
     // 先固定
     epoll_event ep_events[MAXEVENTS];
@@ -91,17 +102,38 @@ public:
     int handlePacketFromDB ();
     int handleSigninResFromDB();
     int handleSignupResFromDB();
-    
+    int handleCopyRespFromDB();
+    int handleDeleteRespFromDB();
+    int handleMkdirRespFromDB();
+    int handleMoveRespFromDB();
+    int handleSynRespFromDB();
+
     // 处理从Client来的packet
     int handlePacketFromClient(socket_t sockclnt);
     int handleSigninFromClient(socket_t sockclnt);
     int handleSignupFromClient(socket_t sockclnt);
-    
+    int handleCopyFromClient(socket_t sockclnt);
+    int handleDeleteFromClient(socket_t sockclnt);
+    int handleMkdirFromClient(socket_t sockclnt);
+    int handleMoveFromClient(socket_t sockclnt);
+    int handleSynReqFromClient(socket_t sockclnt);
+
+    // 向Client发送回包
     int sendSignupResToClient(socket_t sockclnt);
     int sendSigninResToClient(socket_t sockclnt);
+    int sendCopyRespToCilent(socket_t sockclnt);
+    int sendDeleteRespToCilent(socket_t sockclnt);
+    int sendMkdirRespToCilent(socket_t sockclnt);
+    int sendMoveRespToCilent(socket_t sockclnt);
+    int sendSynRespToCilent(socket_t sockclnt);
+    // 向数据库发送请求
     int sendSigninToDB();
     int sendSignupToDB();
-    
+    int sendCopyToDB();
+    int sendDeleteToDB();
+    int sendMkdirToDB();
+    int sendMoveToDB();
+    int sendSynReqToDB();    
     // 创立管道
     bool createPipe(const string &pipe);
     // 添加 epoll 监视的句柄
