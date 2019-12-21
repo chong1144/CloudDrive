@@ -36,11 +36,11 @@ int main(int argc, char const *argv[])
                     exit(0);
                     break;
                 case 1:
-                    // l.writeLog(Log::INFO, "database process start!");
-                    // db = new Database(configFile, string(root) + "/Log/database.log");
-                    // db->Run();
-                    // l.writeLog(Log::WARNING, "database process out!");
-                    // exit(0);
+                    l.writeLog(Log::INFO, "database process start!");
+                    db = new Database(configFile, string(root) + "/Log/database.log");
+                    db->Run();
+                    l.writeLog(Log::WARNING, "database process out!");
+                    exit(0);
                     break;
                 // case 2:
 

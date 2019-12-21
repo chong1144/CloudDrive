@@ -20,7 +20,6 @@ set(MODULES
     filesystem
     Control
     # Test
-    Database
     Package
     # Test
     Database
