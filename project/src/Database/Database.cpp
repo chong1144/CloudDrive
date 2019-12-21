@@ -758,7 +758,10 @@ int Database::do_mysql_cmd(UniformHeader h)
             else
             {
                 //登陆成功 更新数据
+                memset(res->Session, 0, sizeof(res->Session));
+                
                 strcpy(res->Session,uid_pwd.first.c_str());
+                log.writeLog(Log::INFO, uid_pwd.first + " "+res->Session);
                 res->code = SIGNIN_SUCCESS;
                 Users_Update(body->Username,body->IP);
                 //log.writeLog(Log::INFO,string("update user ")+body->Username+" success");
@@ -818,6 +821,7 @@ int Database::do_mysql_cmd(UniformHeader h)
             //告知用户该用户名已存在 
 
             res->code = SIGNUP_EXISTED_USERNAME;
+            memset(res->Session, 0, sizeof(res->Session));
             strcpy(res->Session,"");
             log.writeLog(Log::INFO,"[Register Failed]");
         }

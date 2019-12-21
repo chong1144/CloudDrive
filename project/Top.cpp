@@ -1,4 +1,5 @@
 #include <control.h>
+#include <CTRL.h>
 #include <Log.h>
 #include <Config.h>
 #include <root_dir.h>
@@ -16,6 +17,7 @@ int main(int argc, char const *argv[])
 
     int forkres = 0;
     control *con;
+    CTRL* ctrl;
     Database *db;
     for (size_t i = 0; i < 2; i++)
     {
@@ -31,7 +33,8 @@ int main(int argc, char const *argv[])
                 {
                 case 0:
                     l.writeLog(Log::INFO, "control process start!");
-                    con = new control(configFile);
+                    // con = new control(configFile);
+                    ctrl = new CTRL(configFile);
                     l.writeLog(Log::WARNING, "control process out!");
                     exit(0);
                     break;

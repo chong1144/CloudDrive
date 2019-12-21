@@ -119,7 +119,7 @@ void control::startServer()
         l.writeLog(Log::ERROR, "Fail to create server socket");
         exit(-1);
     }
-    else
+    else if(0)
     {
         int flag = fcntl(sock, F_GETFL);
         fcntl(sock, flag | O_NONBLOCK);
@@ -231,7 +231,7 @@ void control::waitForClient()
                         exit(-1);
                     }
                     // 设置非阻塞的方法 禁用目前
-                    if (1)
+                    if (0)
                     {
                         int flag = fcntl(accres, F_GETFL);
                         fcntl(accres, flag | O_NONBLOCK);
@@ -244,7 +244,7 @@ void control::waitForClient()
                     string InfoContent = "Connect with " + ip + ":" + to_string(port) + " and Socket is " + to_string(accres);
                     l.writeLog(Log::INFO, InfoContent);
 
-                    sockQueue.push(accres);
+                    // sockQueue.push(accres);
                 }
             }
             else if (candidateSock == this->fifo_dtoc && candidateSockEvents & EPOLLIN)
@@ -276,7 +276,9 @@ void control::waitForClient()
                 }
 
                 // 获取每一个包的 Session
-                string Session(packet, SessionLength);
+                l.writeLog(Log::INFO, ((SigninresBody *)packet)->Session); 
+                string Session(((SigninresBody *)packet)->Session);
+                l.writeLog(Log::INFO, Session); 
                 // memcpy(Session, packet, SessionLength);
 
                 // 建立 Session --- sock 映射表
@@ -287,7 +289,6 @@ void control::waitForClient()
                     {
                         string InfoContent = to_string(sockQueue.front()) + "'s Session get " + Session;
                         l.writeLog(Log::INFO, InfoContent);
-                        
                         sS[Session] = sockQueue.front();
                         Ss[sockQueue.front()] = Session;
                         sockQueue.pop();
@@ -330,6 +331,7 @@ void control::waitForClient()
                     // 罕见情况
                     l.writeLog(Log::WARNING, "rare situation");
                 }
+                l.writeLog(Log::INFO, string("read uhead succ!!"));
                 string InfoContent;
 
                 switch (u.p)
@@ -361,7 +363,7 @@ void control::waitForClient()
                     //InfoContent = to_string(u.p) + " : " + to_string(u.len);
                     //l.writeLog(Log::INFO, InfoContent);
                     write(this->fifo_ctod, &u, sizeof(u));
-
+                    sockQueue.push(candidateSock);  //将向数据库发起请求的sock暂存，数据库来包时匹配队首
                     readres = read(candidateSock, packet, u.len);
                     if (readres != u.len)
                     {
@@ -379,7 +381,6 @@ void control::waitForClient()
                         InfoContent = string("ip:") + b->IP + " username:" + b->Username + "psw:" + b->Password;
                         l.writeLog(Log::INFO, InfoContent);
                     }
-
                     break;
 
                 default:
@@ -397,12 +398,19 @@ void control::waitForClient()
                 if(cu.header.p == SIGNIN_RES || cu.header.p == SIGNUP_RES)
                 {
                     int *Code = (int *)&(((char *)cu.body)[SessionLength]);
+                    l.writeLog(Log::INFO, string("Codes: " ) + to_string(*Code));
                     if(*Code != 0)
                     {
                         int temp = sockQueue.front();
+                        if(sockQueue.empty())
+                        {
+                            l.writeLog(Log::INFO, string("EMPTY"));
+                            continue;
+                        }
+                        l.writeLog(Log::INFO, string("TEMP: " + to_string(temp)));
                         write(temp, &cu.header, sizeof(cu.header));
                         write(temp, cu.body, cu.header.len);
-                        delete (char *)cu.body;
+                        // delete (char *)cu.body;
 
                         string ip;
                         uint16_t port;
@@ -427,7 +435,8 @@ void control::waitForClient()
                     + spb->Session + " Name: " + spb->name + " isFile: " + to_string(spb->isFile) + " id: " + to_string(spb->id));
 
                 }
-                string Session((char *)cu.body, SessionLength);
+                string Session((char *)cu.body);
+                l.writeLog(Log::INFO, string("Session: ") + Session);
                 if(sS.find(Session) == sS.end())
                 {
                     l.writeLog(Log::ERROR, "Sign in First!!!!");
@@ -437,7 +446,7 @@ void control::waitForClient()
                 write(sS.at(Session), &cu.header, sizeof(u));
                 write(sS.at(Session), cu.body, u.len);
                 l.writeLog(Log::INFO, string("session:")+Session+" socket:"+ to_string(sS.at(Session)));
-                delete (char *)cu.body;
+                // delete (char *)cu.body;
                 
                 BufferQueue.pop();
                 l.writeLog(Log::INFO, "Write Success packageType:"+to_string(cu.header.p));
@@ -467,7 +476,7 @@ void control::EpollAdd(const int &epfd, const int &fd, const uint32_t &events)
     ep_ev.events = events;
     if (-1 == epoll_ctl(epfd, EPOLL_CTL_ADD, ep_ev.data.fd, &ep_ev))
     {
-        perror("epoll_ctl()");
+        perror("epoll_ctl()EPOLLADD");
         l.writeLog(Log::ERROR, string("epoll_ctl()") + strerror(errno));
     }
 }
@@ -491,7 +500,7 @@ void control::EpollDel(const int &epfd, const int &fd)
     l.writeLog(Log::INFO, "Epolldel");
     if (-1 == epoll_ctl(epfd, EPOLL_CTL_DEL, fd, nullptr))
     {
-        perror("epoll_ctl()");
+        perror("epoll_ctl()EpollDel");
         l.writeLog(Log::ERROR, string("epoll_ctl()") + strerror(errno));
     }
 }

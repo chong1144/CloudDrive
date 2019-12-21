@@ -5,4 +5,4 @@ aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/ SUB_SOURCES)
 
 # ($(SUB_SOURCES))
 
-add_library(Control STATIC ${SUB_SOURCES})
+add_library(Control STATIC CTRL.cpp)
