@@ -412,7 +412,8 @@ void control::waitForClient()
                         
                         sockQueue.pop();
                         EpollDel(epfd, temp);
-                        close(temp);
+                        // close(temp);
+                        shutdown(temp, SHUT_RDWR);
                         
                         continue;
                     }
