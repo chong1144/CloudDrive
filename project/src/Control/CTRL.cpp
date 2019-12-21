@@ -313,6 +313,21 @@ int CTRL::handleSynRespFromDB()
     queryQue.pop();
 }
 
+int CTRL::handleSynPushFromDB()
+{
+    int len;
+    // read signinres
+    len = read(this->fifo_dtoc, &synPushPacket, headPacket.len);
+    if(len!=headPacket.len){
+        fileLog.writeLog(Log::ERROR, string("handleSynPushFromDB read synRespPacket len:")+to_string(len));
+        exit(-1);
+    }
+    // »Ø°ü
+    this->sendSynPushToCilent(queryQue.front());
+    // É¾³ý
+    queryQue.pop();
+}
+
 int CTRL::handlePacketFromDB()
 {
     fileLog.writeLog(Log::INFO, string("handlePacketFromDB begin"));
@@ -336,6 +351,8 @@ int CTRL::handlePacketFromDB()
         handleMoveRespFromDB();
     }else if(headPacket.p == pType::SYN_RESP){
         handleSynRespFromDB();
+    }else if(headPacket.p == pType::SYN_PUSH){
+        handleSynPushFromDB();
     }
 
     fileLog.writeLog(Log::INFO, string("handlePacketFromDB end"));
@@ -601,6 +618,24 @@ int CTRL::sendSynRespToCilent(socket_t sockclnt)
     len = write(sockclnt, &synRespPacket, headPacket.len);
     if(len!=headPacket.len){
         fileLog.writeLog(Log::ERROR, string("sendSynRespToCilent write synRespPacket len:")+to_string(len));
+        return -1;
+    }
+    return 0;
+}
+
+int CTRL::sendSynPushToCilent(socket_t sockclnt)
+{
+    int len;
+    headPacket.p = pType::SYN_PUSH;
+    headPacket.len = PackageSizeMap.at(pType::SYN_PUSH);
+    len = write(sockclnt, &headPacket, headlen);
+    if(len!=headlen){
+        fileLog.writeLog(Log::ERROR, string("sendSynPushToCilent write head len:")+to_string(len));
+        return -1;
+    }
+    len = write(sockclnt, &synPushPacket, headPacket.len);
+    if(len!=headPacket.len){
+        fileLog.writeLog(Log::ERROR, string("sendSynPushToCilent write synPushPacket len:")+to_string(len));
         return -1;
     }
     return 0;

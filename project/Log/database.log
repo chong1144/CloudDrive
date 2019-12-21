@@ -1,10 +1,6 @@
-Sun Dec 22 01:39:29 2019 [INFO]: mysql connect sucessful
-Sun Dec 22 01:39:29 2019 [INFO]: open fifo success
-Sun Dec 22 01:39:29 2019 [INFO]: epoll events create success
-Sun Dec 22 01:39:41 2019 [INFO]: [Register] IP: Username:sw
-Sun Dec 22 01:39:41 2019 [INFO]: [Register Failed]
-Sun Dec 22 01:39:52 2019 [INFO]: [Register] IP: Username:ws
-Sun Dec 22 01:39:52 2019 [INFO]: [Register Success]
-Sun Dec 22 01:40:05 2019 [INFO]: [Login] IP:ù Username:sw
-Sun Dec 22 01:40:05 2019 [INFO]: 9 9
-Sun Dec 22 01:40:05 2019 [INFO]: [Login Success]
+Sun Dec 22 05:23:06 2019 [INFO]: mysql connect sucessful
+Sun Dec 22 05:23:06 2019 [INFO]: open fifo success
+Sun Dec 22 05:23:06 2019 [INFO]: epoll events create success
+Sun Dec 22 05:25:22 2019 [INFO]: [Login] IP: Username:huxuan
+Sun Dec 22 05:25:22 2019 [INFO]: 2 2
+Sun Dec 22 05:25:22 2019 [INFO]: [Login Success]

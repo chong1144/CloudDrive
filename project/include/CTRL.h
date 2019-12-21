@@ -68,15 +68,15 @@ class CTRL
     MoveBody        movePacket;
     MkdirBody       mkdirPacket;
     SYNReqBody      synReqPacket;
-    CopyRespBody        copyRespPacket;
-    DeleteRespBody      deleteRespPacket;
-    MkdirRespBody       mkdirRespPacket;
-    MoveRespBody        moveRespPacket;
-    SYNRespBody      synRespPacket;
-
+    CopyRespBody    copyRespPacket;
+    DeleteRespBody  deleteRespPacket;
+    MkdirRespBody   mkdirRespPacket;
+    MoveRespBody    moveRespPacket;
+    SYNRespBody     synRespPacket;
+    SYNPushBody     synPushPacket;
 
     int epfd;
-    // 先固定
+    // 先固定size
     epoll_event ep_events[MAXEVENTS];
     int socklisten;
 
@@ -107,7 +107,7 @@ public:
     int handleMkdirRespFromDB();
     int handleMoveRespFromDB();
     int handleSynRespFromDB();
-
+    int handleSynPushFromDB();
     // 处理从Client来的packet
     int handlePacketFromClient(socket_t sockclnt);
     int handleSigninFromClient(socket_t sockclnt);
@@ -126,6 +126,7 @@ public:
     int sendMkdirRespToCilent(socket_t sockclnt);
     int sendMoveRespToCilent(socket_t sockclnt);
     int sendSynRespToCilent(socket_t sockclnt);
+    int sendSynPushToCilent(socket_t sockclnt);
     // 向数据库发送请求
     int sendSigninToDB();
     int sendSignupToDB();
