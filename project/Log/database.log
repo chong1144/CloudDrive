@@ -1,6 +1,740 @@
-Sun Dec 22 05:23:06 2019 [INFO]: mysql connect sucessful
-Sun Dec 22 05:23:06 2019 [INFO]: open fifo success
-Sun Dec 22 05:23:06 2019 [INFO]: epoll events create success
-Sun Dec 22 05:25:22 2019 [INFO]: [Login] IP: Username:huxuan
-Sun Dec 22 05:25:22 2019 [INFO]: 2 2
-Sun Dec 22 05:25:22 2019 [INFO]: [Login Success]
+Sun Dec 22 10:33:03 2019 [INFO]: mysql connect sucessful
+Sun Dec 22 10:33:03 2019 [INFO]: open fifo success
+Sun Dec 22 10:33:03 2019 [INFO]: epoll events create success
+Sun Dec 22 10:33:14 2019 [INFO]: [Login] IP: Username:root
+Sun Dec 22 10:33:14 2019 [INFO]: 1 1
+Sun Dec 22 10:33:14 2019 [INFO]: [Login Success]
+Sun Dec 22 10:33:15 2019 [INFO]: [SYN Req] Uid:1, path:/
+Sun Dec 22 10:33:15 2019 [INFO]: [SYN Req Success]
+Sun Dec 22 10:33:15 2019 [INFO]: p->Session=1
+Sun Dec 22 10:33:15 2019 [INFO]: p->name=123
+Sun Dec 22 10:33:15 2019 [INFO]: p->id=0
+Sun Dec 22 10:33:15 2019 [INFO]: p->size=0
+Sun Dec 22 10:33:15 2019 [INFO]: p->time=2019-12-22 10:15:06
+Sun Dec 22 10:33:15 2019 [INFO]: p->isFile=0
+Sun Dec 22 10:33:15 2019 [INFO]: write SYNPushbody
+Sun Dec 22 10:33:15 2019 [INFO]: p->Session=1
+Sun Dec 22 10:33:15 2019 [INFO]: p->name=dir
+Sun Dec 22 10:33:15 2019 [INFO]: p->id=1
+Sun Dec 22 10:33:15 2019 [INFO]: p->size=0
+Sun Dec 22 10:33:15 2019 [INFO]: p->time=2019-12-22 09:49:43
+Sun Dec 22 10:33:15 2019 [INFO]: p->isFile=0
+Sun Dec 22 10:33:15 2019 [INFO]: write SYNPushbody
+Sun Dec 22 10:33:15 2019 [INFO]: p->Session=1
+Sun Dec 22 10:33:15 2019 [INFO]: p->name=test.txt
+Sun Dec 22 10:33:15 2019 [INFO]: p->id=2
+Sun Dec 22 10:33:15 2019 [INFO]: p->size=100
+Sun Dec 22 10:33:15 2019 [INFO]: p->time=2019-12-21 20:49:25
+Sun Dec 22 10:33:15 2019 [INFO]: p->isFile=1
+Sun Dec 22 10:33:15 2019 [INFO]: write SYNPushbody
+Sun Dec 22 10:33:15 2019 [INFO]: send SYNPUSH
+Sun Dec 22 10:33:15 2019 [INFO]: send SYNPUSH
+Sun Dec 22 10:33:15 2019 [INFO]: send SYNPUSH
+Sun Dec 22 10:33:34 2019 [INFO]: [Login] IP: Username:root
+Sun Dec 22 10:33:34 2019 [INFO]: 1 1
+Sun Dec 22 10:33:34 2019 [INFO]: [Login Success]
+Sun Dec 22 10:33:36 2019 [INFO]: [SYN Req] Uid:1, path:/
+Sun Dec 22 10:33:36 2019 [INFO]: [SYN Req Success]
+Sun Dec 22 10:33:36 2019 [INFO]: p->Session=1
+Sun Dec 22 10:33:36 2019 [INFO]: p->name=123
+Sun Dec 22 10:33:36 2019 [INFO]: p->id=0
+Sun Dec 22 10:33:36 2019 [INFO]: p->size=0
+Sun Dec 22 10:33:36 2019 [INFO]: p->time=2019-12-22 10:15:06
+Sun Dec 22 10:33:36 2019 [INFO]: p->isFile=0
+Sun Dec 22 10:33:36 2019 [INFO]: write SYNPushbody
+Sun Dec 22 10:33:36 2019 [INFO]: p->Session=1
+Sun Dec 22 10:33:36 2019 [INFO]: p->name=dir
+Sun Dec 22 10:33:36 2019 [INFO]: p->id=1
+Sun Dec 22 10:33:36 2019 [INFO]: p->size=0
+Sun Dec 22 10:33:36 2019 [INFO]: p->time=2019-12-22 09:49:43
+Sun Dec 22 10:33:36 2019 [INFO]: p->isFile=0
+Sun Dec 22 10:33:36 2019 [INFO]: write SYNPushbody
+Sun Dec 22 10:33:36 2019 [INFO]: p->Session=1
+Sun Dec 22 10:33:36 2019 [INFO]: p->name=test.txt
+Sun Dec 22 10:33:36 2019 [INFO]: p->id=2
+Sun Dec 22 10:33:36 2019 [INFO]: p->size=100
+Sun Dec 22 10:33:36 2019 [INFO]: p->time=2019-12-21 20:49:25
+Sun Dec 22 10:33:36 2019 [INFO]: p->isFile=1
+Sun Dec 22 10:33:36 2019 [INFO]: write SYNPushbody
+Sun Dec 22 10:33:36 2019 [INFO]: send SYNPUSH
+Sun Dec 22 10:33:36 2019 [INFO]: send SYNPUSH
+Sun Dec 22 10:33:36 2019 [INFO]: send SYNPUSH
+Sun Dec 22 10:38:32 2019 [INFO]: [Login] IP: Username:root
+Sun Dec 22 10:38:32 2019 [INFO]: 1 1
+Sun Dec 22 10:38:32 2019 [INFO]: [Login Success]
+Sun Dec 22 10:38:33 2019 [INFO]: [SYN Req] Uid:1, path:/
+Sun Dec 22 10:38:33 2019 [INFO]: [SYN Req Success]
+Sun Dec 22 10:38:33 2019 [INFO]: p->Session=1
+Sun Dec 22 10:38:33 2019 [INFO]: p->name=123
+Sun Dec 22 10:38:33 2019 [INFO]: p->id=0
+Sun Dec 22 10:38:33 2019 [INFO]: p->size=0
+Sun Dec 22 10:38:33 2019 [INFO]: p->time=2019-12-22 10:15:06
+Sun Dec 22 10:38:33 2019 [INFO]: p->isFile=0
+Sun Dec 22 10:38:33 2019 [INFO]: write SYNPushbody
+Sun Dec 22 10:38:33 2019 [INFO]: p->Session=1
+Sun Dec 22 10:38:33 2019 [INFO]: p->name=dir
+Sun Dec 22 10:38:33 2019 [INFO]: p->id=1
+Sun Dec 22 10:38:33 2019 [INFO]: p->size=0
+Sun Dec 22 10:38:33 2019 [INFO]: p->time=2019-12-22 09:49:43
+Sun Dec 22 10:38:33 2019 [INFO]: p->isFile=0
+Sun Dec 22 10:38:33 2019 [INFO]: write SYNPushbody
+Sun Dec 22 10:38:33 2019 [INFO]: p->Session=1
+Sun Dec 22 10:38:33 2019 [INFO]: p->name=test.txt
+Sun Dec 22 10:38:33 2019 [INFO]: p->id=2
+Sun Dec 22 10:38:33 2019 [INFO]: p->size=100
+Sun Dec 22 10:38:33 2019 [INFO]: p->time=2019-12-21 20:49:25
+Sun Dec 22 10:38:33 2019 [INFO]: p->isFile=1
+Sun Dec 22 10:38:33 2019 [INFO]: write SYNPushbody
+Sun Dec 22 10:38:33 2019 [INFO]: send SYNPUSH
+Sun Dec 22 10:38:33 2019 [INFO]: send SYNPUSH
+Sun Dec 22 10:38:33 2019 [INFO]: send SYNPUSH
+Sun Dec 22 10:39:05 2019 [INFO]: [Login] IP: Username:root
+Sun Dec 22 10:39:05 2019 [INFO]: 1 1
+Sun Dec 22 10:39:05 2019 [INFO]: [Login Success]
+Sun Dec 22 10:39:06 2019 [INFO]: [SYN Req] Uid:1, path:/
+Sun Dec 22 10:39:06 2019 [INFO]: [SYN Req Success]
+Sun Dec 22 10:39:06 2019 [INFO]: p->Session=1
+Sun Dec 22 10:39:06 2019 [INFO]: p->name=123
+Sun Dec 22 10:39:06 2019 [INFO]: p->id=0
+Sun Dec 22 10:39:06 2019 [INFO]: p->size=0
+Sun Dec 22 10:39:06 2019 [INFO]: p->time=2019-12-22 10:15:06
+Sun Dec 22 10:39:06 2019 [INFO]: p->isFile=0
+Sun Dec 22 10:39:06 2019 [INFO]: write SYNPushbody
+Sun Dec 22 10:39:06 2019 [INFO]: p->Session=1
+Sun Dec 22 10:39:06 2019 [INFO]: p->name=dir
+Sun Dec 22 10:39:06 2019 [INFO]: p->id=1
+Sun Dec 22 10:39:06 2019 [INFO]: p->size=0
+Sun Dec 22 10:39:06 2019 [INFO]: p->time=2019-12-22 09:49:43
+Sun Dec 22 10:39:06 2019 [INFO]: p->isFile=0
+Sun Dec 22 10:39:06 2019 [INFO]: write SYNPushbody
+Sun Dec 22 10:39:06 2019 [INFO]: p->Session=1
+Sun Dec 22 10:39:06 2019 [INFO]: p->name=test.txt
+Sun Dec 22 10:39:06 2019 [INFO]: p->id=2
+Sun Dec 22 10:39:06 2019 [INFO]: p->size=100
+Sun Dec 22 10:39:06 2019 [INFO]: p->time=2019-12-21 20:49:25
+Sun Dec 22 10:39:06 2019 [INFO]: p->isFile=1
+Sun Dec 22 10:39:06 2019 [INFO]: write SYNPushbody
+Sun Dec 22 10:39:06 2019 [INFO]: send SYNPUSH
+Sun Dec 22 10:39:06 2019 [INFO]: send SYNPUSH
+Sun Dec 22 10:39:06 2019 [INFO]: send SYNPUSH
+Sun Dec 22 10:39:23 2019 [INFO]: [Login] IP: Username:root
+Sun Dec 22 10:39:23 2019 [INFO]: 1 1
+Sun Dec 22 10:39:23 2019 [INFO]: [Login Success]
+Sun Dec 22 10:39:24 2019 [INFO]: [SYN Req] Uid:1, path:/
+Sun Dec 22 10:39:24 2019 [INFO]: [SYN Req Success]
+Sun Dec 22 10:39:24 2019 [INFO]: p->Session=1
+Sun Dec 22 10:39:24 2019 [INFO]: p->name=123
+Sun Dec 22 10:39:24 2019 [INFO]: p->id=0
+Sun Dec 22 10:39:24 2019 [INFO]: p->size=0
+Sun Dec 22 10:39:24 2019 [INFO]: p->time=2019-12-22 10:15:06
+Sun Dec 22 10:39:24 2019 [INFO]: p->isFile=0
+Sun Dec 22 10:39:24 2019 [INFO]: write SYNPushbody
+Sun Dec 22 10:39:24 2019 [INFO]: p->Session=1
+Sun Dec 22 10:39:24 2019 [INFO]: p->name=dir
+Sun Dec 22 10:39:24 2019 [INFO]: p->id=1
+Sun Dec 22 10:39:24 2019 [INFO]: p->size=0
+Sun Dec 22 10:39:24 2019 [INFO]: p->time=2019-12-22 09:49:43
+Sun Dec 22 10:39:24 2019 [INFO]: p->isFile=0
+Sun Dec 22 10:39:24 2019 [INFO]: write SYNPushbody
+Sun Dec 22 10:39:24 2019 [INFO]: p->Session=1
+Sun Dec 22 10:39:24 2019 [INFO]: p->name=test.txt
+Sun Dec 22 10:39:24 2019 [INFO]: p->id=2
+Sun Dec 22 10:39:24 2019 [INFO]: p->size=100
+Sun Dec 22 10:39:24 2019 [INFO]: p->time=2019-12-21 20:49:25
+Sun Dec 22 10:39:24 2019 [INFO]: p->isFile=1
+Sun Dec 22 10:39:24 2019 [INFO]: write SYNPushbody
+Sun Dec 22 10:39:24 2019 [INFO]: send SYNPUSH
+Sun Dec 22 10:39:24 2019 [INFO]: send SYNPUSH
+Sun Dec 22 10:39:24 2019 [INFO]: send SYNPUSH
+Sun Dec 22 10:40:33 2019 [INFO]: [Login] IP: Username:root
+Sun Dec 22 10:40:33 2019 [INFO]: 1 1
+Sun Dec 22 10:40:33 2019 [INFO]: [Login Success]
+Sun Dec 22 10:40:34 2019 [INFO]: [SYN Req] Uid:1, path:/
+Sun Dec 22 10:40:34 2019 [INFO]: [SYN Req Success]
+Sun Dec 22 10:40:34 2019 [INFO]: p->Session=1
+Sun Dec 22 10:40:34 2019 [INFO]: p->name=123
+Sun Dec 22 10:40:34 2019 [INFO]: p->id=0
+Sun Dec 22 10:40:34 2019 [INFO]: p->size=0
+Sun Dec 22 10:40:34 2019 [INFO]: p->time=2019-12-22 10:15:06
+Sun Dec 22 10:40:34 2019 [INFO]: p->isFile=0
+Sun Dec 22 10:40:34 2019 [INFO]: write SYNPushbody
+Sun Dec 22 10:40:34 2019 [INFO]: p->Session=1
+Sun Dec 22 10:40:34 2019 [INFO]: p->name=dir
+Sun Dec 22 10:40:34 2019 [INFO]: p->id=1
+Sun Dec 22 10:40:34 2019 [INFO]: p->size=0
+Sun Dec 22 10:40:34 2019 [INFO]: p->time=2019-12-22 09:49:43
+Sun Dec 22 10:40:34 2019 [INFO]: p->isFile=0
+Sun Dec 22 10:40:34 2019 [INFO]: write SYNPushbody
+Sun Dec 22 10:40:34 2019 [INFO]: p->Session=1
+Sun Dec 22 10:40:34 2019 [INFO]: p->name=test.txt
+Sun Dec 22 10:40:34 2019 [INFO]: p->id=2
+Sun Dec 22 10:40:34 2019 [INFO]: p->size=100
+Sun Dec 22 10:40:34 2019 [INFO]: p->time=2019-12-21 20:49:25
+Sun Dec 22 10:40:34 2019 [INFO]: p->isFile=1
+Sun Dec 22 10:40:34 2019 [INFO]: write SYNPushbody
+Sun Dec 22 10:40:34 2019 [INFO]: send SYNPUSH
+Sun Dec 22 10:40:34 2019 [INFO]: send SYNPUSH
+Sun Dec 22 10:40:34 2019 [INFO]: send SYNPUSH
+Sun Dec 22 10:40:43 2019 [INFO]: [Login] IP: Username:root
+Sun Dec 22 10:40:43 2019 [INFO]: 1 1
+Sun Dec 22 10:40:43 2019 [INFO]: [Login Success]
+Sun Dec 22 10:40:44 2019 [INFO]: [SYN Req] Uid:1, path:/
+Sun Dec 22 10:40:44 2019 [INFO]: [SYN Req Success]
+Sun Dec 22 10:40:44 2019 [INFO]: p->Session=1
+Sun Dec 22 10:40:44 2019 [INFO]: p->name=123
+Sun Dec 22 10:40:44 2019 [INFO]: p->id=0
+Sun Dec 22 10:40:44 2019 [INFO]: p->size=0
+Sun Dec 22 10:40:44 2019 [INFO]: p->time=2019-12-22 10:15:06
+Sun Dec 22 10:40:44 2019 [INFO]: p->isFile=0
+Sun Dec 22 10:40:44 2019 [INFO]: write SYNPushbody
+Sun Dec 22 10:40:44 2019 [INFO]: p->Session=1
+Sun Dec 22 10:40:44 2019 [INFO]: p->name=dir
+Sun Dec 22 10:40:44 2019 [INFO]: p->id=1
+Sun Dec 22 10:40:44 2019 [INFO]: p->size=0
+Sun Dec 22 10:40:44 2019 [INFO]: p->time=2019-12-22 09:49:43
+Sun Dec 22 10:40:44 2019 [INFO]: p->isFile=0
+Sun Dec 22 10:40:44 2019 [INFO]: write SYNPushbody
+Sun Dec 22 10:40:44 2019 [INFO]: p->Session=1
+Sun Dec 22 10:40:44 2019 [INFO]: p->name=test.txt
+Sun Dec 22 10:40:44 2019 [INFO]: p->id=2
+Sun Dec 22 10:40:44 2019 [INFO]: p->size=100
+Sun Dec 22 10:40:44 2019 [INFO]: p->time=2019-12-21 20:49:25
+Sun Dec 22 10:40:44 2019 [INFO]: p->isFile=1
+Sun Dec 22 10:40:44 2019 [INFO]: write SYNPushbody
+Sun Dec 22 10:40:44 2019 [INFO]: send SYNPUSH
+Sun Dec 22 10:40:44 2019 [INFO]: send SYNPUSH
+Sun Dec 22 10:40:44 2019 [INFO]: send SYNPUSH
+Sun Dec 22 10:40:52 2019 [INFO]: [Login] IP: Username:root
+Sun Dec 22 10:40:52 2019 [INFO]: 1 1
+Sun Dec 22 10:40:52 2019 [INFO]: [Login Success]
+Sun Dec 22 10:40:54 2019 [INFO]: [SYN Req] Uid:1, path:/
+Sun Dec 22 10:40:54 2019 [INFO]: [SYN Req Success]
+Sun Dec 22 10:40:54 2019 [INFO]: p->Session=1
+Sun Dec 22 10:40:54 2019 [INFO]: p->name=123
+Sun Dec 22 10:40:54 2019 [INFO]: p->id=0
+Sun Dec 22 10:40:54 2019 [INFO]: p->size=0
+Sun Dec 22 10:40:54 2019 [INFO]: p->time=2019-12-22 10:15:06
+Sun Dec 22 10:40:54 2019 [INFO]: p->isFile=0
+Sun Dec 22 10:40:54 2019 [INFO]: write SYNPushbody
+Sun Dec 22 10:40:54 2019 [INFO]: p->Session=1
+Sun Dec 22 10:40:54 2019 [INFO]: p->name=dir
+Sun Dec 22 10:40:54 2019 [INFO]: p->id=1
+Sun Dec 22 10:40:54 2019 [INFO]: p->size=0
+Sun Dec 22 10:40:54 2019 [INFO]: p->time=2019-12-22 09:49:43
+Sun Dec 22 10:40:54 2019 [INFO]: p->isFile=0
+Sun Dec 22 10:40:54 2019 [INFO]: write SYNPushbody
+Sun Dec 22 10:40:54 2019 [INFO]: p->Session=1
+Sun Dec 22 10:40:54 2019 [INFO]: p->name=test.txt
+Sun Dec 22 10:40:54 2019 [INFO]: p->id=2
+Sun Dec 22 10:40:54 2019 [INFO]: p->size=100
+Sun Dec 22 10:40:54 2019 [INFO]: p->time=2019-12-21 20:49:25
+Sun Dec 22 10:40:54 2019 [INFO]: p->isFile=1
+Sun Dec 22 10:40:54 2019 [INFO]: write SYNPushbody
+Sun Dec 22 10:40:54 2019 [INFO]: send SYNPUSH
+Sun Dec 22 10:40:54 2019 [INFO]: send SYNPUSH
+Sun Dec 22 10:40:54 2019 [INFO]: send SYNPUSH
+Sun Dec 22 10:41:36 2019 [INFO]: [Mkdir Req] Uid:1, DirName:test_dir_1, Path:/
+Sun Dec 22 10:41:36 2019 [INFO]: [Mkdir Req Success]
+Sun Dec 22 10:41:49 2019 [INFO]: [Login] IP: Username:root
+Sun Dec 22 10:41:49 2019 [INFO]: 1 1
+Sun Dec 22 10:41:49 2019 [INFO]: [Login Success]
+Sun Dec 22 10:41:50 2019 [INFO]: [SYN Req] Uid:1, path:/
+Sun Dec 22 10:41:50 2019 [INFO]: [SYN Req Success]
+Sun Dec 22 10:41:50 2019 [INFO]: p->Session=1
+Sun Dec 22 10:41:50 2019 [INFO]: p->name=test_dir_1
+Sun Dec 22 10:41:50 2019 [INFO]: p->id=0
+Sun Dec 22 10:41:50 2019 [INFO]: p->size=0
+Sun Dec 22 10:41:50 2019 [INFO]: p->time=2019-12-22 10:41:36
+Sun Dec 22 10:41:50 2019 [INFO]: p->isFile=0
+Sun Dec 22 10:41:50 2019 [INFO]: write SYNPushbody
+Sun Dec 22 10:41:50 2019 [INFO]: p->Session=1
+Sun Dec 22 10:41:50 2019 [INFO]: p->name=123
+Sun Dec 22 10:41:50 2019 [INFO]: p->id=1
+Sun Dec 22 10:41:50 2019 [INFO]: p->size=0
+Sun Dec 22 10:41:50 2019 [INFO]: p->time=2019-12-22 10:15:06
+Sun Dec 22 10:41:50 2019 [INFO]: p->isFile=0
+Sun Dec 22 10:41:50 2019 [INFO]: write SYNPushbody
+Sun Dec 22 10:41:50 2019 [INFO]: p->Session=1
+Sun Dec 22 10:41:50 2019 [INFO]: p->name=dir
+Sun Dec 22 10:41:50 2019 [INFO]: p->id=2
+Sun Dec 22 10:41:50 2019 [INFO]: p->size=0
+Sun Dec 22 10:41:50 2019 [INFO]: p->time=2019-12-22 09:49:43
+Sun Dec 22 10:41:50 2019 [INFO]: p->isFile=0
+Sun Dec 22 10:41:50 2019 [INFO]: write SYNPushbody
+Sun Dec 22 10:41:50 2019 [INFO]: p->Session=1
+Sun Dec 22 10:41:50 2019 [INFO]: p->name=test.txt
+Sun Dec 22 10:41:50 2019 [INFO]: p->id=3
+Sun Dec 22 10:41:50 2019 [INFO]: p->size=100
+Sun Dec 22 10:41:50 2019 [INFO]: p->time=2019-12-21 20:49:25
+Sun Dec 22 10:41:50 2019 [INFO]: p->isFile=1
+Sun Dec 22 10:41:50 2019 [INFO]: write SYNPushbody
+Sun Dec 22 10:41:50 2019 [INFO]: send SYNPUSH
+Sun Dec 22 10:41:50 2019 [INFO]: send SYNPUSH
+Sun Dec 22 10:41:50 2019 [INFO]: send SYNPUSH
+Sun Dec 22 10:41:50 2019 [INFO]: send SYNPUSH
+Sun Dec 22 10:43:19 2019 [INFO]: [Login] IP: Username:root
+Sun Dec 22 10:43:19 2019 [INFO]: 1 1
+Sun Dec 22 10:43:19 2019 [INFO]: [Login Success]
+Sun Dec 22 10:43:21 2019 [INFO]: [SYN Req] Uid:1, path:/
+Sun Dec 22 10:43:21 2019 [INFO]: [SYN Req Success]
+Sun Dec 22 10:43:21 2019 [INFO]: p->Session=1
+Sun Dec 22 10:43:21 2019 [INFO]: p->name=test_dir_1
+Sun Dec 22 10:43:21 2019 [INFO]: p->id=0
+Sun Dec 22 10:43:21 2019 [INFO]: p->size=0
+Sun Dec 22 10:43:21 2019 [INFO]: p->time=2019-12-22 10:41:36
+Sun Dec 22 10:43:21 2019 [INFO]: p->isFile=0
+Sun Dec 22 10:43:21 2019 [INFO]: write SYNPushbody
+Sun Dec 22 10:43:21 2019 [INFO]: p->Session=1
+Sun Dec 22 10:43:21 2019 [INFO]: p->name=123
+Sun Dec 22 10:43:21 2019 [INFO]: p->id=1
+Sun Dec 22 10:43:21 2019 [INFO]: p->size=0
+Sun Dec 22 10:43:21 2019 [INFO]: p->time=2019-12-22 10:15:06
+Sun Dec 22 10:43:21 2019 [INFO]: p->isFile=0
+Sun Dec 22 10:43:21 2019 [INFO]: write SYNPushbody
+Sun Dec 22 10:43:21 2019 [INFO]: p->Session=1
+Sun Dec 22 10:43:21 2019 [INFO]: p->name=dir
+Sun Dec 22 10:43:21 2019 [INFO]: p->id=2
+Sun Dec 22 10:43:21 2019 [INFO]: p->size=0
+Sun Dec 22 10:43:21 2019 [INFO]: p->time=2019-12-22 09:49:43
+Sun Dec 22 10:43:21 2019 [INFO]: p->isFile=0
+Sun Dec 22 10:43:21 2019 [INFO]: write SYNPushbody
+Sun Dec 22 10:43:21 2019 [INFO]: p->Session=1
+Sun Dec 22 10:43:21 2019 [INFO]: p->name=test.txt
+Sun Dec 22 10:43:21 2019 [INFO]: p->id=3
+Sun Dec 22 10:43:21 2019 [INFO]: p->size=100
+Sun Dec 22 10:43:21 2019 [INFO]: p->time=2019-12-21 20:49:25
+Sun Dec 22 10:43:21 2019 [INFO]: p->isFile=1
+Sun Dec 22 10:43:21 2019 [INFO]: write SYNPushbody
+Sun Dec 22 10:43:21 2019 [INFO]: send SYNPUSH
+Sun Dec 22 10:43:21 2019 [INFO]: send SYNPUSH
+Sun Dec 22 10:43:21 2019 [INFO]: send SYNPUSH
+Sun Dec 22 10:43:21 2019 [INFO]: send SYNPUSH
+Sun Dec 22 10:43:29 2019 [INFO]: [Mkdir Req] Uid:1, DirName:test_dir_2, Path:/
+Sun Dec 22 10:43:29 2019 [INFO]: [Mkdir Req Success]
+Sun Dec 22 10:43:31 2019 [INFO]: [SYN Req] Uid:1, path:/
+Sun Dec 22 10:43:31 2019 [INFO]: [SYN Req Success]
+Sun Dec 22 10:43:31 2019 [INFO]: p->Session=1
+Sun Dec 22 10:43:31 2019 [INFO]: p->name=test_dir_2
+Sun Dec 22 10:43:31 2019 [INFO]: p->id=0
+Sun Dec 22 10:43:31 2019 [INFO]: p->size=0
+Sun Dec 22 10:43:31 2019 [INFO]: p->time=2019-12-22 10:43:29
+Sun Dec 22 10:43:31 2019 [INFO]: p->isFile=0
+Sun Dec 22 10:43:31 2019 [INFO]: write SYNPushbody
+Sun Dec 22 10:43:31 2019 [INFO]: p->Session=1
+Sun Dec 22 10:43:31 2019 [INFO]: p->name=test_dir_1
+Sun Dec 22 10:43:31 2019 [INFO]: p->id=1
+Sun Dec 22 10:43:31 2019 [INFO]: p->size=0
+Sun Dec 22 10:43:31 2019 [INFO]: p->time=2019-12-22 10:41:36
+Sun Dec 22 10:43:31 2019 [INFO]: p->isFile=0
+Sun Dec 22 10:43:31 2019 [INFO]: write SYNPushbody
+Sun Dec 22 10:43:31 2019 [INFO]: p->Session=1
+Sun Dec 22 10:43:31 2019 [INFO]: p->name=123
+Sun Dec 22 10:43:31 2019 [INFO]: p->id=2
+Sun Dec 22 10:43:31 2019 [INFO]: p->size=0
+Sun Dec 22 10:43:31 2019 [INFO]: p->time=2019-12-22 10:15:06
+Sun Dec 22 10:43:31 2019 [INFO]: p->isFile=0
+Sun Dec 22 10:43:31 2019 [INFO]: write SYNPushbody
+Sun Dec 22 10:43:31 2019 [INFO]: p->Session=1
+Sun Dec 22 10:43:31 2019 [INFO]: p->name=dir
+Sun Dec 22 10:43:31 2019 [INFO]: p->id=3
+Sun Dec 22 10:43:31 2019 [INFO]: p->size=0
+Sun Dec 22 10:43:31 2019 [INFO]: p->time=2019-12-22 09:49:43
+Sun Dec 22 10:43:31 2019 [INFO]: p->isFile=0
+Sun Dec 22 10:43:31 2019 [INFO]: write SYNPushbody
+Sun Dec 22 10:43:31 2019 [INFO]: p->Session=1
+Sun Dec 22 10:43:31 2019 [INFO]: p->name=test.txt
+Sun Dec 22 10:43:31 2019 [INFO]: p->id=4
+Sun Dec 22 10:43:31 2019 [INFO]: p->size=100
+Sun Dec 22 10:43:31 2019 [INFO]: p->time=2019-12-21 20:49:25
+Sun Dec 22 10:43:31 2019 [INFO]: p->isFile=1
+Sun Dec 22 10:43:31 2019 [INFO]: write SYNPushbody
+Sun Dec 22 10:43:31 2019 [INFO]: send SYNPUSH
+Sun Dec 22 10:43:31 2019 [INFO]: send SYNPUSH
+Sun Dec 22 10:43:31 2019 [INFO]: send SYNPUSH
+Sun Dec 22 10:43:31 2019 [INFO]: send SYNPUSH
+Sun Dec 22 10:43:31 2019 [INFO]: send SYNPUSH
+Sun Dec 22 10:43:42 2019 [INFO]: [Login] IP: Username:root
+Sun Dec 22 10:43:42 2019 [INFO]: 1 1
+Sun Dec 22 10:43:42 2019 [INFO]: [Login Success]
+Sun Dec 22 10:43:43 2019 [INFO]: [SYN Req] Uid:1, path:/
+Sun Dec 22 10:43:43 2019 [INFO]: [SYN Req Success]
+Sun Dec 22 10:43:43 2019 [INFO]: p->Session=1
+Sun Dec 22 10:43:43 2019 [INFO]: p->name=test_dir_2
+Sun Dec 22 10:43:43 2019 [INFO]: p->id=0
+Sun Dec 22 10:43:43 2019 [INFO]: p->size=0
+Sun Dec 22 10:43:43 2019 [INFO]: p->time=2019-12-22 10:43:29
+Sun Dec 22 10:43:43 2019 [INFO]: p->isFile=0
+Sun Dec 22 10:43:43 2019 [INFO]: write SYNPushbody
+Sun Dec 22 10:43:43 2019 [INFO]: p->Session=1
+Sun Dec 22 10:43:43 2019 [INFO]: p->name=test_dir_1
+Sun Dec 22 10:43:43 2019 [INFO]: p->id=1
+Sun Dec 22 10:43:43 2019 [INFO]: p->size=0
+Sun Dec 22 10:43:43 2019 [INFO]: p->time=2019-12-22 10:41:36
+Sun Dec 22 10:43:43 2019 [INFO]: p->isFile=0
+Sun Dec 22 10:43:43 2019 [INFO]: write SYNPushbody
+Sun Dec 22 10:43:43 2019 [INFO]: p->Session=1
+Sun Dec 22 10:43:43 2019 [INFO]: p->name=123
+Sun Dec 22 10:43:43 2019 [INFO]: p->id=2
+Sun Dec 22 10:43:43 2019 [INFO]: p->size=0
+Sun Dec 22 10:43:43 2019 [INFO]: p->time=2019-12-22 10:15:06
+Sun Dec 22 10:43:43 2019 [INFO]: p->isFile=0
+Sun Dec 22 10:43:43 2019 [INFO]: write SYNPushbody
+Sun Dec 22 10:43:43 2019 [INFO]: p->Session=1
+Sun Dec 22 10:43:43 2019 [INFO]: p->name=dir
+Sun Dec 22 10:43:43 2019 [INFO]: p->id=3
+Sun Dec 22 10:43:43 2019 [INFO]: p->size=0
+Sun Dec 22 10:43:43 2019 [INFO]: p->time=2019-12-22 09:49:43
+Sun Dec 22 10:43:43 2019 [INFO]: p->isFile=0
+Sun Dec 22 10:43:43 2019 [INFO]: write SYNPushbody
+Sun Dec 22 10:43:43 2019 [INFO]: p->Session=1
+Sun Dec 22 10:43:43 2019 [INFO]: p->name=test.txt
+Sun Dec 22 10:43:43 2019 [INFO]: p->id=4
+Sun Dec 22 10:43:43 2019 [INFO]: p->size=100
+Sun Dec 22 10:43:43 2019 [INFO]: p->time=2019-12-21 20:49:25
+Sun Dec 22 10:43:43 2019 [INFO]: p->isFile=1
+Sun Dec 22 10:43:43 2019 [INFO]: write SYNPushbody
+Sun Dec 22 10:43:43 2019 [INFO]: send SYNPUSH
+Sun Dec 22 10:43:43 2019 [INFO]: send SYNPUSH
+Sun Dec 22 10:43:43 2019 [INFO]: send SYNPUSH
+Sun Dec 22 10:43:43 2019 [INFO]: send SYNPUSH
+Sun Dec 22 10:43:43 2019 [INFO]: send SYNPUSH
+Sun Dec 22 11:08:19 2019 [INFO]: [Login] IP: Username:root
+Sun Dec 22 11:08:19 2019 [INFO]: 1 1
+Sun Dec 22 11:08:19 2019 [INFO]: [Login Success]
+Sun Dec 22 11:08:20 2019 [INFO]: [SYN Req] Uid:1, path:/
+Sun Dec 22 11:08:20 2019 [INFO]: [SYN Req Success]
+Sun Dec 22 11:08:20 2019 [INFO]: p->Session=1
+Sun Dec 22 11:08:20 2019 [INFO]: p->name=test_dir_2
+Sun Dec 22 11:08:20 2019 [INFO]: p->id=0
+Sun Dec 22 11:08:20 2019 [INFO]: p->size=0
+Sun Dec 22 11:08:20 2019 [INFO]: p->time=2019-12-22 10:43:29
+Sun Dec 22 11:08:20 2019 [INFO]: p->isFile=0
+Sun Dec 22 11:08:20 2019 [INFO]: write SYNPushbody
+Sun Dec 22 11:08:20 2019 [INFO]: p->Session=1
+Sun Dec 22 11:08:20 2019 [INFO]: p->name=test_dir_1
+Sun Dec 22 11:08:20 2019 [INFO]: p->id=1
+Sun Dec 22 11:08:20 2019 [INFO]: p->size=0
+Sun Dec 22 11:08:20 2019 [INFO]: p->time=2019-12-22 10:41:36
+Sun Dec 22 11:08:20 2019 [INFO]: p->isFile=0
+Sun Dec 22 11:08:20 2019 [INFO]: write SYNPushbody
+Sun Dec 22 11:08:20 2019 [INFO]: p->Session=1
+Sun Dec 22 11:08:20 2019 [INFO]: p->name=123
+Sun Dec 22 11:08:20 2019 [INFO]: p->id=2
+Sun Dec 22 11:08:20 2019 [INFO]: p->size=0
+Sun Dec 22 11:08:20 2019 [INFO]: p->time=2019-12-22 10:15:06
+Sun Dec 22 11:08:20 2019 [INFO]: p->isFile=0
+Sun Dec 22 11:08:20 2019 [INFO]: write SYNPushbody
+Sun Dec 22 11:08:20 2019 [INFO]: p->Session=1
+Sun Dec 22 11:08:20 2019 [INFO]: p->name=dir
+Sun Dec 22 11:08:20 2019 [INFO]: p->id=3
+Sun Dec 22 11:08:20 2019 [INFO]: p->size=0
+Sun Dec 22 11:08:20 2019 [INFO]: p->time=2019-12-22 09:49:43
+Sun Dec 22 11:08:20 2019 [INFO]: p->isFile=0
+Sun Dec 22 11:08:20 2019 [INFO]: write SYNPushbody
+Sun Dec 22 11:08:20 2019 [INFO]: p->Session=1
+Sun Dec 22 11:08:20 2019 [INFO]: p->name=test.txt
+Sun Dec 22 11:08:20 2019 [INFO]: p->id=4
+Sun Dec 22 11:08:20 2019 [INFO]: p->size=100
+Sun Dec 22 11:08:20 2019 [INFO]: p->time=2019-12-21 20:49:25
+Sun Dec 22 11:08:20 2019 [INFO]: p->isFile=1
+Sun Dec 22 11:08:20 2019 [INFO]: write SYNPushbody
+Sun Dec 22 11:08:20 2019 [INFO]: send SYNPUSH
+Sun Dec 22 11:08:20 2019 [INFO]: send SYNPUSH
+Sun Dec 22 11:08:20 2019 [INFO]: send SYNPUSH
+Sun Dec 22 11:08:20 2019 [INFO]: send SYNPUSH
+Sun Dec 22 11:08:20 2019 [INFO]: send SYNPUSH
+Sun Dec 22 11:21:29 2019 [INFO]: [Login] IP: Username:root
+Sun Dec 22 11:21:29 2019 [INFO]: 1 1
+Sun Dec 22 11:21:29 2019 [INFO]: [Login Success]
+Sun Dec 22 11:21:30 2019 [INFO]: [SYN Req] Uid:1, path:/
+Sun Dec 22 11:21:30 2019 [INFO]: [SYN Req Success]
+Sun Dec 22 11:21:30 2019 [INFO]: p->Session=1
+Sun Dec 22 11:21:30 2019 [INFO]: p->name=test_dir_2
+Sun Dec 22 11:21:30 2019 [INFO]: p->id=0
+Sun Dec 22 11:21:30 2019 [INFO]: p->size=0
+Sun Dec 22 11:21:30 2019 [INFO]: p->time=2019-12-22 10:43:29
+Sun Dec 22 11:21:30 2019 [INFO]: p->isFile=0
+Sun Dec 22 11:21:30 2019 [INFO]: write SYNPushbody
+Sun Dec 22 11:21:30 2019 [INFO]: p->Session=1
+Sun Dec 22 11:21:30 2019 [INFO]: p->name=test_dir_1
+Sun Dec 22 11:21:30 2019 [INFO]: p->id=1
+Sun Dec 22 11:21:30 2019 [INFO]: p->size=0
+Sun Dec 22 11:21:30 2019 [INFO]: p->time=2019-12-22 10:41:36
+Sun Dec 22 11:21:30 2019 [INFO]: p->isFile=0
+Sun Dec 22 11:21:30 2019 [INFO]: write SYNPushbody
+Sun Dec 22 11:21:30 2019 [INFO]: p->Session=1
+Sun Dec 22 11:21:30 2019 [INFO]: p->name=123
+Sun Dec 22 11:21:30 2019 [INFO]: p->id=2
+Sun Dec 22 11:21:30 2019 [INFO]: p->size=0
+Sun Dec 22 11:21:30 2019 [INFO]: p->time=2019-12-22 10:15:06
+Sun Dec 22 11:21:30 2019 [INFO]: p->isFile=0
+Sun Dec 22 11:21:30 2019 [INFO]: write SYNPushbody
+Sun Dec 22 11:21:30 2019 [INFO]: p->Session=1
+Sun Dec 22 11:21:30 2019 [INFO]: p->name=dir
+Sun Dec 22 11:21:30 2019 [INFO]: p->id=3
+Sun Dec 22 11:21:30 2019 [INFO]: p->size=0
+Sun Dec 22 11:21:30 2019 [INFO]: p->time=2019-12-22 09:49:43
+Sun Dec 22 11:21:30 2019 [INFO]: p->isFile=0
+Sun Dec 22 11:21:30 2019 [INFO]: write SYNPushbody
+Sun Dec 22 11:21:30 2019 [INFO]: p->Session=1
+Sun Dec 22 11:21:30 2019 [INFO]: p->name=test.txt
+Sun Dec 22 11:21:30 2019 [INFO]: p->id=4
+Sun Dec 22 11:21:30 2019 [INFO]: p->size=100
+Sun Dec 22 11:21:30 2019 [INFO]: p->time=2019-12-21 20:49:25
+Sun Dec 22 11:21:30 2019 [INFO]: p->isFile=1
+Sun Dec 22 11:21:30 2019 [INFO]: write SYNPushbody
+Sun Dec 22 11:21:30 2019 [INFO]: send SYNPUSH
+Sun Dec 22 11:21:30 2019 [INFO]: send SYNPUSH
+Sun Dec 22 11:21:30 2019 [INFO]: send SYNPUSH
+Sun Dec 22 11:21:30 2019 [INFO]: send SYNPUSH
+Sun Dec 22 11:21:30 2019 [INFO]: send SYNPUSH
+Sun Dec 22 11:21:35 2019 [INFO]: [DELETE Req] Uid:1, filename:test_dir_1, path:/
+Sun Dec 22 11:21:35 2019 [INFO]: [DELETE Success]
+Sun Dec 22 11:21:35 2019 [INFO]: [SYN Req] Uid:1, path:/
+Sun Dec 22 11:21:35 2019 [INFO]: [SYN Req Success]
+Sun Dec 22 11:21:35 2019 [INFO]: p->Session=1
+Sun Dec 22 11:21:35 2019 [INFO]: p->name=test_dir_2
+Sun Dec 22 11:21:35 2019 [INFO]: p->id=0
+Sun Dec 22 11:21:35 2019 [INFO]: p->size=0
+Sun Dec 22 11:21:35 2019 [INFO]: p->time=2019-12-22 10:43:29
+Sun Dec 22 11:21:35 2019 [INFO]: p->isFile=0
+Sun Dec 22 11:21:35 2019 [INFO]: write SYNPushbody
+Sun Dec 22 11:21:35 2019 [INFO]: p->Session=1
+Sun Dec 22 11:21:35 2019 [INFO]: p->name=123
+Sun Dec 22 11:21:35 2019 [INFO]: p->id=1
+Sun Dec 22 11:21:35 2019 [INFO]: p->size=0
+Sun Dec 22 11:21:35 2019 [INFO]: p->time=2019-12-22 10:15:06
+Sun Dec 22 11:21:35 2019 [INFO]: p->isFile=0
+Sun Dec 22 11:21:35 2019 [INFO]: write SYNPushbody
+Sun Dec 22 11:21:35 2019 [INFO]: p->Session=1
+Sun Dec 22 11:21:35 2019 [INFO]: p->name=dir
+Sun Dec 22 11:21:35 2019 [INFO]: p->id=2
+Sun Dec 22 11:21:35 2019 [INFO]: p->size=0
+Sun Dec 22 11:21:35 2019 [INFO]: p->time=2019-12-22 09:49:43
+Sun Dec 22 11:21:35 2019 [INFO]: p->isFile=0
+Sun Dec 22 11:21:35 2019 [INFO]: write SYNPushbody
+Sun Dec 22 11:21:35 2019 [INFO]: p->Session=1
+Sun Dec 22 11:21:35 2019 [INFO]: p->name=test.txt
+Sun Dec 22 11:21:35 2019 [INFO]: p->id=3
+Sun Dec 22 11:21:35 2019 [INFO]: p->size=100
+Sun Dec 22 11:21:35 2019 [INFO]: p->time=2019-12-21 20:49:25
+Sun Dec 22 11:21:35 2019 [INFO]: p->isFile=1
+Sun Dec 22 11:21:35 2019 [INFO]: write SYNPushbody
+Sun Dec 22 11:21:35 2019 [INFO]: send SYNPUSH
+Sun Dec 22 11:21:35 2019 [INFO]: send SYNPUSH
+Sun Dec 22 11:21:35 2019 [INFO]: send SYNPUSH
+Sun Dec 22 11:21:35 2019 [INFO]: send SYNPUSH
+Sun Dec 22 11:23:41 2019 [INFO]: [Login] IP:œ¶· Username:root
+Sun Dec 22 11:23:41 2019 [INFO]: 1 1
+Sun Dec 22 11:23:41 2019 [INFO]: [Login Success]
+Sun Dec 22 11:23:42 2019 [INFO]: [SYN Req] Uid:1, path:/
+Sun Dec 22 11:23:42 2019 [INFO]: [SYN Req Success]
+Sun Dec 22 11:23:42 2019 [INFO]: p->Session=1
+Sun Dec 22 11:23:42 2019 [INFO]: p->name=test_dir_2
+Sun Dec 22 11:23:42 2019 [INFO]: p->id=0
+Sun Dec 22 11:23:42 2019 [INFO]: p->size=0
+Sun Dec 22 11:23:42 2019 [INFO]: p->time=2019-12-22 10:43:29
+Sun Dec 22 11:23:42 2019 [INFO]: p->isFile=0
+Sun Dec 22 11:23:42 2019 [INFO]: write SYNPushbody
+Sun Dec 22 11:23:42 2019 [INFO]: p->Session=1
+Sun Dec 22 11:23:42 2019 [INFO]: p->name=123
+Sun Dec 22 11:23:42 2019 [INFO]: p->id=1
+Sun Dec 22 11:23:42 2019 [INFO]: p->size=0
+Sun Dec 22 11:23:42 2019 [INFO]: p->time=2019-12-22 10:15:06
+Sun Dec 22 11:23:42 2019 [INFO]: p->isFile=0
+Sun Dec 22 11:23:42 2019 [INFO]: write SYNPushbody
+Sun Dec 22 11:23:42 2019 [INFO]: p->Session=1
+Sun Dec 22 11:23:42 2019 [INFO]: p->name=dir
+Sun Dec 22 11:23:42 2019 [INFO]: p->id=2
+Sun Dec 22 11:23:42 2019 [INFO]: p->size=0
+Sun Dec 22 11:23:42 2019 [INFO]: p->time=2019-12-22 09:49:43
+Sun Dec 22 11:23:42 2019 [INFO]: p->isFile=0
+Sun Dec 22 11:23:42 2019 [INFO]: write SYNPushbody
+Sun Dec 22 11:23:42 2019 [INFO]: p->Session=1
+Sun Dec 22 11:23:42 2019 [INFO]: p->name=test.txt
+Sun Dec 22 11:23:42 2019 [INFO]: p->id=3
+Sun Dec 22 11:23:42 2019 [INFO]: p->size=100
+Sun Dec 22 11:23:42 2019 [INFO]: p->time=2019-12-21 20:49:25
+Sun Dec 22 11:23:42 2019 [INFO]: p->isFile=1
+Sun Dec 22 11:23:42 2019 [INFO]: write SYNPushbody
+Sun Dec 22 11:23:42 2019 [INFO]: send SYNPUSH
+Sun Dec 22 11:23:42 2019 [INFO]: send SYNPUSH
+Sun Dec 22 11:23:42 2019 [INFO]: send SYNPUSH
+Sun Dec 22 11:23:42 2019 [INFO]: send SYNPUSH
+Sun Dec 22 11:23:45 2019 [INFO]: [SYN Req] Uid:1, path:/
+Sun Dec 22 11:23:45 2019 [INFO]: [SYN Req Success]
+Sun Dec 22 11:23:45 2019 [INFO]: p->Session=1
+Sun Dec 22 11:23:45 2019 [INFO]: p->name=test_dir_2
+Sun Dec 22 11:23:45 2019 [INFO]: p->id=0
+Sun Dec 22 11:23:45 2019 [INFO]: p->size=0
+Sun Dec 22 11:23:45 2019 [INFO]: p->time=2019-12-22 10:43:29
+Sun Dec 22 11:23:45 2019 [INFO]: p->isFile=0
+Sun Dec 22 11:23:45 2019 [INFO]: write SYNPushbody
+Sun Dec 22 11:23:45 2019 [INFO]: p->Session=1
+Sun Dec 22 11:23:45 2019 [INFO]: p->name=123
+Sun Dec 22 11:23:45 2019 [INFO]: p->id=1
+Sun Dec 22 11:23:45 2019 [INFO]: p->size=0
+Sun Dec 22 11:23:45 2019 [INFO]: p->time=2019-12-22 10:15:06
+Sun Dec 22 11:23:45 2019 [INFO]: p->isFile=0
+Sun Dec 22 11:23:45 2019 [INFO]: write SYNPushbody
+Sun Dec 22 11:23:45 2019 [INFO]: p->Session=1
+Sun Dec 22 11:23:45 2019 [INFO]: p->name=dir
+Sun Dec 22 11:23:45 2019 [INFO]: p->id=2
+Sun Dec 22 11:23:45 2019 [INFO]: p->size=0
+Sun Dec 22 11:23:45 2019 [INFO]: p->time=2019-12-22 09:49:43
+Sun Dec 22 11:23:45 2019 [INFO]: p->isFile=0
+Sun Dec 22 11:23:45 2019 [INFO]: write SYNPushbody
+Sun Dec 22 11:23:45 2019 [INFO]: p->Session=1
+Sun Dec 22 11:23:45 2019 [INFO]: p->name=test.txt
+Sun Dec 22 11:23:45 2019 [INFO]: p->id=3
+Sun Dec 22 11:23:45 2019 [INFO]: p->size=100
+Sun Dec 22 11:23:45 2019 [INFO]: p->time=2019-12-21 20:49:25
+Sun Dec 22 11:23:45 2019 [INFO]: p->isFile=1
+Sun Dec 22 11:23:45 2019 [INFO]: write SYNPushbody
+Sun Dec 22 11:23:45 2019 [INFO]: send SYNPUSH
+Sun Dec 22 11:23:45 2019 [INFO]: send SYNPUSH
+Sun Dec 22 11:23:45 2019 [INFO]: send SYNPUSH
+Sun Dec 22 11:23:45 2019 [INFO]: send SYNPUSH
+Sun Dec 22 11:23:58 2019 [INFO]: [Mkdir Req] Uid:1, DirName:123, Path:/
+Sun Dec 22 11:23:58 2019 [INFO]: [Mkdir Failed] ALREADY_HAS 
+Sun Dec 22 11:24:04 2019 [INFO]: [SYN Req] Uid:1, path:/
+Sun Dec 22 11:24:04 2019 [INFO]: [SYN Req Success]
+Sun Dec 22 11:24:04 2019 [INFO]: p->Session=1
+Sun Dec 22 11:24:04 2019 [INFO]: p->name=test_dir_2
+Sun Dec 22 11:24:04 2019 [INFO]: p->id=0
+Sun Dec 22 11:24:04 2019 [INFO]: p->size=0
+Sun Dec 22 11:24:04 2019 [INFO]: p->time=2019-12-22 10:43:29
+Sun Dec 22 11:24:04 2019 [INFO]: p->isFile=0
+Sun Dec 22 11:24:04 2019 [INFO]: write SYNPushbody
+Sun Dec 22 11:24:04 2019 [INFO]: p->Session=1
+Sun Dec 22 11:24:04 2019 [INFO]: p->name=123
+Sun Dec 22 11:24:04 2019 [INFO]: p->id=1
+Sun Dec 22 11:24:04 2019 [INFO]: p->size=0
+Sun Dec 22 11:24:04 2019 [INFO]: p->time=2019-12-22 10:15:06
+Sun Dec 22 11:24:04 2019 [INFO]: p->isFile=0
+Sun Dec 22 11:24:04 2019 [INFO]: write SYNPushbody
+Sun Dec 22 11:24:04 2019 [INFO]: p->Session=1
+Sun Dec 22 11:24:04 2019 [INFO]: p->name=dir
+Sun Dec 22 11:24:04 2019 [INFO]: p->id=2
+Sun Dec 22 11:24:04 2019 [INFO]: p->size=0
+Sun Dec 22 11:24:04 2019 [INFO]: p->time=2019-12-22 09:49:43
+Sun Dec 22 11:24:04 2019 [INFO]: p->isFile=0
+Sun Dec 22 11:24:04 2019 [INFO]: write SYNPushbody
+Sun Dec 22 11:24:04 2019 [INFO]: p->Session=1
+Sun Dec 22 11:24:04 2019 [INFO]: p->name=test.txt
+Sun Dec 22 11:24:04 2019 [INFO]: p->id=3
+Sun Dec 22 11:24:04 2019 [INFO]: p->size=100
+Sun Dec 22 11:24:04 2019 [INFO]: p->time=2019-12-21 20:49:25
+Sun Dec 22 11:24:04 2019 [INFO]: p->isFile=1
+Sun Dec 22 11:24:04 2019 [INFO]: write SYNPushbody
+Sun Dec 22 11:24:04 2019 [INFO]: send SYNPUSH
+Sun Dec 22 11:24:04 2019 [INFO]: send SYNPUSH
+Sun Dec 22 11:24:04 2019 [INFO]: send SYNPUSH
+Sun Dec 22 11:24:04 2019 [INFO]: send SYNPUSH
+Sun Dec 22 11:24:05 2019 [INFO]: [SYN Req] Uid:1, path:/
+Sun Dec 22 11:24:05 2019 [INFO]: [SYN Req Success]
+Sun Dec 22 11:24:05 2019 [INFO]: p->Session=1
+Sun Dec 22 11:24:05 2019 [INFO]: p->name=test_dir_2
+Sun Dec 22 11:24:05 2019 [INFO]: p->id=0
+Sun Dec 22 11:24:05 2019 [INFO]: p->size=0
+Sun Dec 22 11:24:05 2019 [INFO]: p->time=2019-12-22 10:43:29
+Sun Dec 22 11:24:05 2019 [INFO]: p->isFile=0
+Sun Dec 22 11:24:05 2019 [INFO]: write SYNPushbody
+Sun Dec 22 11:24:05 2019 [INFO]: p->Session=1
+Sun Dec 22 11:24:05 2019 [INFO]: p->name=123
+Sun Dec 22 11:24:05 2019 [INFO]: p->id=1
+Sun Dec 22 11:24:05 2019 [INFO]: p->size=0
+Sun Dec 22 11:24:05 2019 [INFO]: p->time=2019-12-22 10:15:06
+Sun Dec 22 11:24:05 2019 [INFO]: p->isFile=0
+Sun Dec 22 11:24:05 2019 [INFO]: write SYNPushbody
+Sun Dec 22 11:24:05 2019 [INFO]: p->Session=1
+Sun Dec 22 11:24:05 2019 [INFO]: p->name=dir
+Sun Dec 22 11:24:05 2019 [INFO]: p->id=2
+Sun Dec 22 11:24:05 2019 [INFO]: p->size=0
+Sun Dec 22 11:24:05 2019 [INFO]: p->time=2019-12-22 09:49:43
+Sun Dec 22 11:24:05 2019 [INFO]: p->isFile=0
+Sun Dec 22 11:24:05 2019 [INFO]: write SYNPushbody
+Sun Dec 22 11:24:05 2019 [INFO]: p->Session=1
+Sun Dec 22 11:24:05 2019 [INFO]: p->name=test.txt
+Sun Dec 22 11:24:05 2019 [INFO]: p->id=3
+Sun Dec 22 11:24:05 2019 [INFO]: p->size=100
+Sun Dec 22 11:24:05 2019 [INFO]: p->time=2019-12-21 20:49:25
+Sun Dec 22 11:24:05 2019 [INFO]: p->isFile=1
+Sun Dec 22 11:24:05 2019 [INFO]: write SYNPushbody
+Sun Dec 22 11:24:05 2019 [INFO]: send SYNPUSH
+Sun Dec 22 11:24:05 2019 [INFO]: send SYNPUSH
+Sun Dec 22 11:24:05 2019 [INFO]: send SYNPUSH
+Sun Dec 22 11:24:05 2019 [INFO]: send SYNPUSH
+Sun Dec 22 11:24:05 2019 [INFO]: [SYN Req] Uid:1, path:/
+Sun Dec 22 11:24:05 2019 [INFO]: [SYN Req Success]
+Sun Dec 22 11:24:05 2019 [INFO]: p->Session=1
+Sun Dec 22 11:24:05 2019 [INFO]: p->name=test_dir_2
+Sun Dec 22 11:24:05 2019 [INFO]: p->id=0
+Sun Dec 22 11:24:05 2019 [INFO]: p->size=0
+Sun Dec 22 11:24:05 2019 [INFO]: p->time=2019-12-22 10:43:29
+Sun Dec 22 11:24:05 2019 [INFO]: p->isFile=0
+Sun Dec 22 11:24:05 2019 [INFO]: write SYNPushbody
+Sun Dec 22 11:24:05 2019 [INFO]: p->Session=1
+Sun Dec 22 11:24:05 2019 [INFO]: p->name=123
+Sun Dec 22 11:24:05 2019 [INFO]: p->id=1
+Sun Dec 22 11:24:05 2019 [INFO]: p->size=0
+Sun Dec 22 11:24:05 2019 [INFO]: p->time=2019-12-22 10:15:06
+Sun Dec 22 11:24:05 2019 [INFO]: p->isFile=0
+Sun Dec 22 11:24:05 2019 [INFO]: write SYNPushbody
+Sun Dec 22 11:24:05 2019 [INFO]: p->Session=1
+Sun Dec 22 11:24:05 2019 [INFO]: p->name=dir
+Sun Dec 22 11:24:05 2019 [INFO]: p->id=2
+Sun Dec 22 11:24:05 2019 [INFO]: p->size=0
+Sun Dec 22 11:24:05 2019 [INFO]: p->time=2019-12-22 09:49:43
+Sun Dec 22 11:24:05 2019 [INFO]: p->isFile=0
+Sun Dec 22 11:24:05 2019 [INFO]: write SYNPushbody
+Sun Dec 22 11:24:05 2019 [INFO]: p->Session=1
+Sun Dec 22 11:24:05 2019 [INFO]: p->name=test.txt
+Sun Dec 22 11:24:05 2019 [INFO]: p->id=3
+Sun Dec 22 11:24:05 2019 [INFO]: p->size=100
+Sun Dec 22 11:24:05 2019 [INFO]: p->time=2019-12-21 20:49:25
+Sun Dec 22 11:24:05 2019 [INFO]: p->isFile=1
+Sun Dec 22 11:24:05 2019 [INFO]: write SYNPushbody
+Sun Dec 22 11:24:05 2019 [INFO]: send SYNPUSH
+Sun Dec 22 11:24:05 2019 [INFO]: send SYNPUSH
+Sun Dec 22 11:24:05 2019 [INFO]: send SYNPUSH
+Sun Dec 22 11:24:05 2019 [INFO]: send SYNPUSH
+Sun Dec 22 11:24:16 2019 [INFO]: [Mkdir Req] Uid:1, DirName:123, Path:/
+Sun Dec 22 11:24:16 2019 [INFO]: [Mkdir Failed] ALREADY_HAS 
+Sun Dec 22 11:27:36 2019 [INFO]: [Login] IP:œ¨Îk Username:root
+Sun Dec 22 11:27:36 2019 [INFO]: 1 1
+Sun Dec 22 11:27:36 2019 [INFO]: [Login Success]
+Sun Dec 22 11:27:37 2019 [INFO]: [SYN Req] Uid:1, path:/
+Sun Dec 22 11:27:37 2019 [INFO]: [SYN Req Success]
+Sun Dec 22 11:27:37 2019 [INFO]: p->Session=1
+Sun Dec 22 11:27:37 2019 [INFO]: p->name=test_dir_2
+Sun Dec 22 11:27:37 2019 [INFO]: p->id=0
+Sun Dec 22 11:27:37 2019 [INFO]: p->size=0
+Sun Dec 22 11:27:37 2019 [INFO]: p->time=2019-12-22 10:43:29
+Sun Dec 22 11:27:37 2019 [INFO]: p->isFile=0
+Sun Dec 22 11:27:37 2019 [INFO]: write SYNPushbody
+Sun Dec 22 11:27:37 2019 [INFO]: p->Session=1
+Sun Dec 22 11:27:37 2019 [INFO]: p->name=123
+Sun Dec 22 11:27:37 2019 [INFO]: p->id=1
+Sun Dec 22 11:27:37 2019 [INFO]: p->size=0
+Sun Dec 22 11:27:37 2019 [INFO]: p->time=2019-12-22 10:15:06
+Sun Dec 22 11:27:37 2019 [INFO]: p->isFile=0
+Sun Dec 22 11:27:37 2019 [INFO]: write SYNPushbody
+Sun Dec 22 11:27:37 2019 [INFO]: p->Session=1
+Sun Dec 22 11:27:37 2019 [INFO]: p->name=dir
+Sun Dec 22 11:27:37 2019 [INFO]: p->id=2
+Sun Dec 22 11:27:37 2019 [INFO]: p->size=0
+Sun Dec 22 11:27:37 2019 [INFO]: p->time=2019-12-22 09:49:43
+Sun Dec 22 11:27:37 2019 [INFO]: p->isFile=0
+Sun Dec 22 11:27:37 2019 [INFO]: write SYNPushbody
+Sun Dec 22 11:27:37 2019 [INFO]: p->Session=1
+Sun Dec 22 11:27:37 2019 [INFO]: p->name=test.txt
+Sun Dec 22 11:27:37 2019 [INFO]: p->id=3
+Sun Dec 22 11:27:37 2019 [INFO]: p->size=100
+Sun Dec 22 11:27:37 2019 [INFO]: p->time=2019-12-21 20:49:25
+Sun Dec 22 11:27:37 2019 [INFO]: p->isFile=1
+Sun Dec 22 11:27:37 2019 [INFO]: write SYNPushbody
+Sun Dec 22 11:27:37 2019 [INFO]: send SYNPUSH
+Sun Dec 22 11:27:37 2019 [INFO]: send SYNPUSH
+Sun Dec 22 11:27:37 2019 [INFO]: send SYNPUSH
+Sun Dec 22 11:27:37 2019 [INFO]: send SYNPUSH

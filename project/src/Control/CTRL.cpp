@@ -189,6 +189,7 @@ void CTRL::startServer()
 
 int CTRL::handleNewConnection(socket_t sockclnt)
 {
+    fileLog.writeLog(Log::INFO, string("new connection socket:")+to_string(sockclnt));
     allSet.insert(sockclnt);
     this->EpollAdd(sockclnt, EPOLLIN);
     return 0;
@@ -309,6 +310,11 @@ int CTRL::handleSynRespFromDB()
     }
     // 回包
     this->sendSynRespToCilent(queryQue.front());
+    
+    for(int i=0;i<synRespPacket.childNum;++i){
+        // sleep(1);
+        handlePacketFromDB();
+    }
     // 删除
     queryQue.pop();
 }
@@ -319,13 +325,19 @@ int CTRL::handleSynPushFromDB()
     // read signinres
     len = read(this->fifo_dtoc, &synPushPacket, headPacket.len);
     if(len!=headPacket.len){
-        fileLog.writeLog(Log::ERROR, string("handleSynPushFromDB read synRespPacket len:")+to_string(len));
+        fileLog.writeLog(Log::ERROR, string("handleSynPushFromDB read synPushPacket len:")+to_string(len));
         exit(-1);
     }
+    fileLog.writeLog(Log::INFO, string("p->Session=")+synPushPacket.Session);
+    fileLog.writeLog(Log::INFO, string("p->name=")+synPushPacket.name);
+    fileLog.writeLog(Log::INFO, string("p->id=")+to_string(synPushPacket.id));
+    fileLog.writeLog(Log::INFO, string("p->isFile=")+to_string(synPushPacket.isFile));
+
     // 回包
+    fileLog.writeLog(Log::INFO,string("target sockclnt:")+to_string(queryQue.front()));
     this->sendSynPushToCilent(queryQue.front());
     // 删除
-    queryQue.pop();
+    // queryQue.pop();
 }
 
 int CTRL::handlePacketFromDB()
@@ -345,7 +357,7 @@ int CTRL::handlePacketFromDB()
         handleCopyRespFromDB();
     }else if(headPacket.p == pType::DELETE_RES){
         handleDeleteRespFromDB();
-    }else if(headPacket.p == pType::MKDIR){
+    }else if(headPacket.p == pType::MKDIR_RES){
         handleMkdirRespFromDB();
     }else if(headPacket.p == pType::MOVE_RES){
         handleMoveRespFromDB();
@@ -630,12 +642,13 @@ int CTRL::sendSynPushToCilent(socket_t sockclnt)
     headPacket.len = PackageSizeMap.at(pType::SYN_PUSH);
     len = write(sockclnt, &headPacket, headlen);
     if(len!=headlen){
-        fileLog.writeLog(Log::ERROR, string("sendSynPushToCilent write head len:")+to_string(len));
+        fileLog.writeLog(Log::ERROR, string("sendSynPushToCilent write head len:")+to_string(len)+"sock:"+to_string(sockclnt));
         return -1;
     }
+    
     len = write(sockclnt, &synPushPacket, headPacket.len);
     if(len!=headPacket.len){
-        fileLog.writeLog(Log::ERROR, string("sendSynPushToCilent write synPushPacket len:")+to_string(len));
+        fileLog.writeLog(Log::ERROR, string("sendSynPushToCilent write synPushPacket len:")+to_string(len)+"sock:"+to_string(sockclnt));
         return -1;
     }
     return 0;

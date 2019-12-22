@@ -7,6 +7,7 @@ struct SYNPushBody
     
     uint32_t isFile;
     uint32_t id;
-    
+    uint32_t size;
+    char time[TIMELength];
     char name[nameLength];
 };

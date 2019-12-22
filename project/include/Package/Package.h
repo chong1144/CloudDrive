@@ -14,6 +14,7 @@ const uint32_t ChunkSize = 1024*1024;
 const uint32_t ContentSize = 1024;
 const uint16_t nameLength = 256;
 const uint16_t MD5Length = 64;
+const uint16_t TIMELength = 32;
 
 #include "SigninBody.h"
 #include "SigninresBody.h"

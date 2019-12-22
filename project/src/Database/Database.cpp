@@ -262,6 +262,34 @@ string Database::Files_Get_Hash(string Uid,string Filename,string path)
     }
 }
 
+string Database::Files_Get_Time(string Uid,string Filename,string path)
+{
+    string cmd = "select Modtime from Files where Uid="+ \
+    generate_string(Uid)+" and "+\
+    "Filename="+generate_string(Filename)+" and "+\
+    "Path="+generate_string(path)+";";
+    
+    if (mysql_query(mysql, cmd.c_str()))
+    {
+        log.writeLog(Log::ERROR,string("mysql_query failed(")+string(mysql_error(mysql))+string(")"));
+    }
+
+     if ((result = mysql_store_result(mysql)) == NULL)
+    {
+        log.writeLog(Log::ERROR,string("mysql_store_result failed"));
+    }
+    
+    // 若找不到文件
+    if((row = mysql_fetch_row(result)) == NULL)
+    {
+        return "NULL";
+    }
+    else
+    {
+        return string(row[0]);
+    }
+}
+
 int Database::Files_Insert(string Uid,string Filename,string path,string hash,bool Isdir)
 {
     string cmd = "insert into Files values(" + \
@@ -986,7 +1014,28 @@ int Database::do_mysql_cmd(UniformHeader h)
             memset(p->name,0,sizeof(p->name));
             strcpy(p->name,filename_isdir.first.c_str());
             p->isFile = !atoi(filename_isdir.second.c_str());
+
+            if(p->isFile)
+            {
+                string t = Files_Get_Hash(body->Session,p->name,body->path);
+                p->size = FileIndex_GetSize(t);
+                
+            }
+            else
+            {
+                p->size = 0;
+            }
+            memset(p->time,0,sizeof(p->time));
+            strcpy(p->time,Files_Get_Time(body->Session,p->name,body->path).c_str());
+
+
             res_queue.push(p);
+            log.writeLog(Log::INFO, string("p->Session=")+p->Session);
+            log.writeLog(Log::INFO, string("p->name=")+p->name);
+            log.writeLog(Log::INFO, string("p->id=")+to_string(p->id));
+            log.writeLog(Log::INFO, string("p->size=")+to_string(p->size));
+            log.writeLog(Log::INFO, string("p->time=")+p->time);
+            log.writeLog(Log::INFO, string("p->isFile=")+to_string(p->isFile));
 
             log.writeLog(Log::INFO,"write SYNPushbody");
         }

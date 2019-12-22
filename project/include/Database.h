@@ -118,6 +118,7 @@ public:
     int Files_Move(string Uid,string Filename,string path,string FilenameTo ,string pathTo);
     int Files_Copy(string Uid,string Filename,string path,string FilenameTo ,string pathTo);
     int Files_Delete(string Uid,string Filename,string path);
+    string Files_Get_Time(string Uid,string Filename,string path);
     vector<pair<string,string>>get_child_files(string Uid,string path);
 
     int FileIndex_Insert(string hash,int size);
