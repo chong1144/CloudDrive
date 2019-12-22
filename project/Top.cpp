@@ -4,7 +4,7 @@
 #include <Config.h>
 #include <root_dir.h>
 #include <Database.h>
-
+#include <Uploader.h>
 
 
 int main(int argc, char const *argv[])
@@ -19,7 +19,8 @@ int main(int argc, char const *argv[])
     control *con;
     CTRL* ctrl;
     Database *db;
-    for (size_t i = 0; i < 2; i++)
+    Uploader *uploader;
+    for (size_t i = 0; i < 3; i++)
     {
         forkres = fork();
 
@@ -45,8 +46,11 @@ int main(int argc, char const *argv[])
                     l.writeLog(Log::WARNING, "database process out!");
                     exit(0);
                     break;
-                // case 2:
-
+                case 2:
+                    l.writeLog(Log::INFO,"uploader process start!");
+                    uploader = new Uploader(configFile, string(root) + "/Log/uploader.log");
+                    l.writeLog(Log::WARNING, "uploader process out!");
+                    exit(0);
                 default:
                     break;
                 }

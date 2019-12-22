@@ -78,8 +78,8 @@ Database::Database(string config_file,string log_file) : config(config_file), lo
     //open fifo
     fifo_ctod = open(config.getValue("Global", "path_fifo_ctod").c_str(), O_RDONLY);
     fifo_dtoc = open(config.getValue("Global", "path_fifo_dtoc").c_str(), O_WRONLY);
-    // fifo_rtod = open(config.getValue("Global", "path_fifo_rtod").c_str(), O_RDONLY);
-    // fifo_dtor = open(config.getValue("Global", "path_fifo_dtor").c_str(), O_WRONLY);
+    fifo_rtod = open(config.getValue("Global", "path_fifo_rtod").c_str(), O_RDONLY);
+    fifo_dtor = open(config.getValue("Global", "path_fifo_dtor").c_str(), O_WRONLY);
     // fifo_stod = open(config.getValue("Global", "path_fifo_stod").c_str(), O_RDONLY);
     // fifo_dtos = open(config.getValue("Global", "path_fifo_dtos").c_str(), O_WRONLY);
      
@@ -624,7 +624,7 @@ int Database::Run()
         perror ("epoll_create1()");
 		exit (-1);
     }
-    epoll_event events[MAXEVENTS], ep_ev;
+    epoll_event events[DATABASE_MAXEVENTS], ep_ev;
     // listen fifos
     ep_ev.data.fd = fifo_ctod;
     ep_ev.events = EPOLLIN | EPOLLERR;
@@ -649,7 +649,7 @@ int Database::Run()
     {
         //监听其他进程向其发送命令的管道(阻塞)
         //cout<<"epoll waiting ..."<<endl;
-        int count = epoll_wait(epfd, events, MAXEVENTS, -1);
+        int count = epoll_wait(epfd, events, DATABASE_MAXEVENTS, -1);
         if (count == -1)
         {
             perror("epoll wait error");

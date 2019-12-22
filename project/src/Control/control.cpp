@@ -100,9 +100,9 @@ void control::init(const string &configFile)
     // this->fifo_stoc = open(c.getValue("Global", "path_fifo_stoc").c_str(), O_RDONLY);
     // l.writeLog(Log::INFO, "open ipc with uploader successfully!");
 
-    // this->fifo_ctor = open(c.getValue("Global", "path_fifo_ctor").c_str(), O_WRONLY);
-    // this->fifo_rtoc = open(c.getValue("Global", "path_fifo_rtoc").c_str(), O_RDONLY);
-    // l.writeLog(Log::INFO, "open ipc downloader successfully!");
+    this->fifo_rtoc = open(c.getValue("Global", "path_fifo_rtoc").c_str(), O_RDONLY);
+    this->fifo_ctor = open(c.getValue("Global", "path_fifo_ctor").c_str(), O_WRONLY);
+    l.writeLog(Log::INFO, "open ipc downloader successfully!");
 
     l.writeLog(Log::INFO, "control read config file successfully!");
 }

@@ -1,8 +1,8 @@
 #include "Uploader.h"
 
-Uploader::Uploader (const string& config_file) :config (config_file)
+Uploader::Uploader (const string& config_file, const string& logFile) :config (config_file)
 {
-    this->init(config_file);
+    this->init(config_file, logFile);
     this->fileout.init(config_file);
     epfd = epoll_create1 (0);
     if (epfd == -1) {
@@ -36,14 +36,15 @@ void Uploader::openfifo()
     }
 }
 
-void Uploader::init(const string& configFile)
+void Uploader::init(const string& configFile, const string& logFile)
 {
     Config c(configFile);
     this->port = atoi(c.getValue("Uploader", "port").c_str());
     this->ip = c.getValue("Uploader", "ip");
     this->numListen = atoi(c.getValue("Uploader", "numListen").c_str());
     this->maxEvent = atoi(c.getValue("Uploader", "maxEvent").c_str()) + 2;
-    fileLog.init(c.getValue("Uploader","LogPosition"));
+    // fileLog.init(c.getValue("Uploader","LogPosition"));
+    fileLog.init(logFile);
 }
 
 void Uploader::startServer()
@@ -275,7 +276,7 @@ int Uploader::handleUploadReq(socket_t sockclnt)
     queryQue.push(sockclnt);
 
     // 建立映射
-    sockFileMap[sockclnt] = string(uploadReqPacket.MD5, MD5Length);
+    sockFileMap[sockclnt] = string(uploadReqPacket.MD5);
     //// 将文件和socket关联添加到fs表 需要等到查询数据库完成再做
     fileLog.writeLog(Log::INFO, string("handleUploadReq end"));
 }
@@ -290,8 +291,8 @@ int Uploader::handlePush (const string& filehash, socket_t sockclnt)
         fileLog.writeLog (Log::ERROR, string ("handlePush 读取pushBody from client长度错误 len: ") + to_string (len));
         return -1;
     }
-    if(string(pushPacket.md5,MD5Length)!=filehash){
-        fileLog.writeLog(Log::WARNING, string("handlePush 读取到非上传文件的包"));
+    if(string(pushPacket.md5)!=filehash){
+        fileLog.writeLog(Log::WARNING, string("handlePush 读取到非上传文件的包")+"gethash:"+pushPacket.md5+ " expected hash:"+filehash);
         return -1;
     }
 
@@ -313,6 +314,7 @@ int Uploader::handlePush (const string& filehash, socket_t sockclnt)
             if (isCompleted (filehash)) {
                 // 完整则调用完成函数扫尾
                 uploadDone (filehash);
+                fileLog.writeLog(Log::INFO,string("file:")+filehash+" upload done");
             }
         }
         // 有需要上传的块
@@ -352,8 +354,8 @@ int Uploader::handlePacketFromDB ()
     // 到此收到完整的fileInfo头
     fileLog.writeLog (Log::INFO, "handlePacketFromDB 读取fileInfo from DB done!");
     // read bitmap from db
-    len = read (fifo_db_r, buf, headPacket.len - sizeof (fileInfoPacket));
-    if (len != headPacket.len - sizeof (fileInfoPacket)) {
+    len = read (fifo_db_r, buf, fileInfoPacket.size);
+    if (len != fileInfoPacket.size) {
         fileLog.writeLog (Log::ERROR, string ("handlePacketFromDB 读取bitmap from DB, 长度错误 len: ") + to_string (len));
         return -1;
     }
@@ -421,7 +423,7 @@ int Uploader::handlePacketFromClient(socket_t sockclnt)
         return -1;
     }
     if(headPacket.p==pType::UPLOAD_REQ){
-        if(idleSet.count(sockclnt)){
+        if(!idleSet.count(sockclnt)){
             fileLog.writeLog(Log::WARNING, string("socket is not in idleSet!!!"));
             return -1;
         }
@@ -496,8 +498,8 @@ int Uploader::sendDoneToClient (const string& filehash, socket_t sockclnt, bool 
 {
     fileLog.writeLog (Log::INFO, string ("sendDoneToClient begin"));
     int len;
-    memcpy(this->uploadDone.MD5, filehash.data(), MD5Length);
-    this->uploadDone.immediate = immediate;
+    memcpy(this->uploadDonePacket.MD5, filehash.data(), MD5Length);
+    this->uploadDonePacket.immediate = immediate;
 
     // set head
     headPacket.p = pType::UPLOAD_DONE;
@@ -606,11 +608,12 @@ int Uploader::run ()
                     }
                     if(ep_ev.events&EPOLLIN){
                         handlePacketFromClient(sock);
+                        
                     }
 
                 }
             }
-            fileLog.writeLog (Log::WARNING, string ("there is a fd that was not handled"));
+            //fileLog.writeLog (Log::WARNING, string ("there is a fd that was not handled:") + to_string(ep_ev.data.fd));
         }
     }
 }
