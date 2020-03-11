@@ -61,8 +61,14 @@ struct UniformHeader
 {
     PackageType p;
     uint16_t len;
+    UniformHeader();
     UniformHeader(const PackageType &pIn);
 };
+
+UniformHeader::UniformHeader()
+{
+    len = 0;
+}
 
 UniformHeader::UniformHeader(const PackageType &pIn) : p(pIn)
 {
