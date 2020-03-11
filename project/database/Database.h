@@ -15,6 +15,8 @@ using std::string;
 #define FILEINDEX "FileIndex"
 #define USERS "Users"
 
+#define BUF_SIZE 1024*1024
+
 
 /*
 database events:
@@ -29,11 +31,12 @@ File events
 5. add new file
 6. add new dir
 7. move file
-8. copy file
-9. delete file
-10. reqest file structure
-
-
+8. move dir
+9. copy file
+10. copy dir
+11. delete file
+12. delete dir
+13. reqest file structure
 
 */
 enum DatabaseEvent
@@ -45,8 +48,11 @@ enum DatabaseEvent
     ADD_FILE,
     ADD_DIR,
     MOVE_FILE,
+    MOVE_DIR,
     COPY_FILE,
+    COPY_DIR,
     DELETE_FILE,
+    DELETE_DIR,
     REQ_FILE_STRUCTURE
 };
 
@@ -80,6 +86,13 @@ private:
     int delete_user();
     int modify_user();
     int authenticate_user();
+    int add_file();
+    int add_dir();
+    int move_file();
+    int move_dir();
+    int delete_file();
+    int delete_dir();
+    int file_structure_req();
 
 public:
     Database(/* args */);
