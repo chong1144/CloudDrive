@@ -26,6 +26,7 @@ enum PackageType
 
     COPY,            // 拷贝文件
     MOVE,            // 复制文件
+    DELETE,          // 删除文件
     // MKDIR,          // 新建文件夹
 };
 
@@ -52,6 +53,7 @@ const static std::map<PackageType, uint16_t> PackageSizeMap{
     
     {PackageType::COPY, sizeof(CopyBody)},
     {PackageType::MOVE, sizeof(MoveBody)},
+    {PackageType::DELETE, sizeof(DeleteBody)},
 };
 
 // 统一的头包 每个指令发送前都要有的
