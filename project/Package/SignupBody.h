@@ -4,5 +4,6 @@
 struct SignupBody
 {
     char Username[UsernameLength];
-    char Password[PasswordLength];    
+    char Password[PasswordLength];  
+    char IP[IPLength];  
 };

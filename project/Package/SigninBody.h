@@ -5,5 +5,6 @@ struct SigninBody
 {
     char Username[UsernameLength];
     char Password[PasswordLength];
+    char IP[IPLength];
     char Session[SessionLength];
 };
