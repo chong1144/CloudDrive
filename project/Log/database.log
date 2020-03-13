@@ -1,0 +1,4 @@
+Fri Mar 13 08:01:07 2020 [INFO]: [Upload Req] Uid:4 FileName:my_first_file Filesize:100 Path:\\ Isdir:0
+Fri Mar 13 08:01:07 2020 [ERROR]: mysql_query failed(You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'inster into FileIndex values("bf083d4ab960620b645557217dd59a49",1,"0000000000000' at line 1)
+Fri Mar 13 08:01:07 2020 [INFO]: [Upload Req Success]
+Fri Mar 13 08:01:07 2020 [ERROR]: fifo closed 4

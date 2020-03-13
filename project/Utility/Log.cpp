@@ -82,7 +82,7 @@ void Log::writeLog(Log::LoggingLevel level, std::string Content)
     }
 
 	ftime (&tb);
-	out << Content;
+	out << Content <<endl;
 	//out << ' ' << tb.time << '.' << tb.millitm << endl;
 
 }

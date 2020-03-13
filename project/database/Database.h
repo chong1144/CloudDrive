@@ -16,6 +16,7 @@
 #include <ctime>
 #include <map>
 #include<mysql/mysql.h>
+#include <unistd.h>
 
 using std::cout;
 using std::endl;
@@ -52,7 +53,6 @@ string MD5(const char * data)
 	unsigned char md[16];
 	char tmp[3]={'\0'};
 	int i;
-
 	MD5_Init(&ctx);
 	MD5_Update(&ctx,data,strlen(data));
 	MD5_Final(md,&ctx);
@@ -67,18 +67,21 @@ string MD5(const char * data)
 
 string generate_string(string src)
 {
+    
     string t = "\"";
     t += src;
     t += "\"";
     return t;
+    
 }
 
 string generate_timestamp()
 {
     //生成时间戳
+    time_t tmNow = time(NULL);
     string t;
-    tm *now = localtime(NULL);
-    t = std::to_string(now->tm_year)+"-"+std::to_string(now->tm_mon)+"-"+std::to_string(now->tm_mday)+" "
+    tm *now = localtime(&tmNow);
+    t = std::to_string(now->tm_year+1900)+"-"+std::to_string(now->tm_mon)+"-"+std::to_string(now->tm_mday)+" "
     +std::to_string(now->tm_hour)+":"+std::to_string(now->tm_min)+":"+std::to_string(now->tm_sec);
 
     return generate_string(t);
@@ -169,7 +172,7 @@ Database::Database(string config_file,string log_file) : config(config_file), lo
     //init mysql config
     this->mysqlHostName = config.getValue("Database", "hostName");
     this->mysqlUserName = config.getValue("Database", "userName");
-    this->databaseName = config.getValue("Database", "DatabaseName");
+    this->databaseName = config.getValue("Database", "databaseName");
     this->mysqlPassword = config.getValue("Database", "password");
 
     //connect mysql database
@@ -224,7 +227,8 @@ Database::~Database()
 pair<string,string> Database::get_uid_pwd_by_uname(string Username)
 {
     pair<string,string> temp;
-    string cmd = "select Uid,Password from Users where Uname="+generate_string(Username);
+    string cmd = "select Uid,Password from Users where Uname="+generate_string(Username)+";";
+    //cout << cmd <<endl;
     /* 进行查询，成功返回0，不成功非0
          1、查询字符串存在语法错误
                 2、查询不存在的数据表 */
@@ -232,34 +236,39 @@ pair<string,string> Database::get_uid_pwd_by_uname(string Username)
     {
         log.writeLog(Log::ERROR,string("mysql_query failed(")+string(mysql_error(mysql))+string(")"));
     }
+    
         /* 将查询结果存储起来，出现错误则返回NULL
         注意：查询结果为NULL，不会返回NULL */
     if ((result = mysql_store_result(mysql)) == NULL)
     {
         log.writeLog(Log::ERROR,string("mysql_store_result failed"));
-    }
-    
-    // 若找不到该用户
-    if((row = mysql_fetch_row(result)) == NULL)
-    {
+        temp.first = "NULL";
         temp.second = "NULL";
-        temp.second = "NULL";
-        return temp;
-    }
-        
-    else
-    {
-        temp.first = row[0];
-        temp.second = row[1];
         return temp;
     }
 
+    //检测返回结果数
+    if(mysql_num_rows(result) == 0)
+    {
+        temp.first = string("NULL");
+
+        temp.second = string("NULL");
+        return temp;
+    }
+
+    
+    row = mysql_fetch_row(result);
+    temp.first = string(row[0]);
+    temp.second = string(row[1]);
+    return temp;
+    
 }
 
 int Database::Users_Insert(string Username,string Password, string IP)
 {
     //数据顺序 Uname,Password,IP,Lastlogintime,Createtime
-    string cmd = string("insert into Users values(") +generate_string(Username) +","+generate_string(MD5(Password.c_str()))+","+generate_string(IP)+","+generate_timestamp()+","+generate_timestamp() +");";
+    string cmd = string("insert into Users values(")+"NULL," +generate_string(Username) +","+generate_string(MD5(Password.c_str()))+","+generate_string(IP)+","+generate_timestamp()+","+generate_timestamp() +");";
+    cout <<cmd<<endl;
     if (mysql_query(mysql, cmd.c_str()))
     {
         log.writeLog(Log::ERROR,string("mysql_query failed(")+string(mysql_error(mysql))+string(")"));
@@ -354,7 +363,7 @@ int Database::Files_Insert(string Uid,string Filename,int size,string path,strin
         generate_timestamp()+","+
         to_string(Isdir) +");";
         
-        
+    //cout << cmd <<endl;
     if (mysql_query(mysql, cmd.c_str()))
     {
         log.writeLog(Log::ERROR,string("mysql_query failed(")+string(mysql_error(mysql))+string(")"));
@@ -447,19 +456,20 @@ vector<pair<string,string>>Database::get_child_files(string Uid,string path)
 
 bool Database::file_exist(string hashCode)
 {
-    string cmd = "select * from FileIndex where Hash="+generate_string(hashCode);
+    string cmd = "select * from FileIndex where Hash="+generate_string(hashCode)+";";
+   // cout<<cmd<<endl;
     if (mysql_query(mysql, cmd.c_str()))
     {
         log.writeLog(Log::ERROR,string("mysql_query failed(")+string(mysql_error(mysql))+string(")"));
     }
     
-    if ((result = mysql_store_result(mysql)) != NULL)
+    if ((result = mysql_store_result(mysql)) == NULL)
     {
         log.writeLog(Log::ERROR,string("mysql_store_result failed"));
     }
     
     // 若没有找到相同文件
-    if((int)mysql_num_rows(result) != 0)
+    if((row = mysql_fetch_row(result)) == NULL)
     {
         return false;
     }  
@@ -612,52 +622,68 @@ int Database::Run()
 {
     //init epoll
     int epfd = epoll_create1(0);
+    if(epfd==-1)
+    {
+        perror ("epoll_create1()");
+		exit (-1);
+    }
     epoll_event events[MAXEVENTS], ep_ev;
     // listen fifos
+    ep_ev.data.fd = fifo_ctod;
+    ep_ev.events = EPOLLIN | EPOLLERR;
+    epoll_ctl(epfd, EPOLL_CTL_ADD, ep_ev.data.fd, &ep_ev);
+
     ep_ev.data.fd = fifo_rtod;
-    ep_ev.events = EPOLLIN;
+    ep_ev.events = EPOLLIN | EPOLLERR;
     epoll_ctl(epfd, EPOLL_CTL_ADD, ep_ev.data.fd, &ep_ev);
 
     ep_ev.data.fd = fifo_stod;
-    ep_ev.events = EPOLLIN;
+    ep_ev.events = EPOLLIN| EPOLLERR;
     epoll_ctl(epfd, EPOLL_CTL_ADD, ep_ev.data.fd, &ep_ev);
 
-    ep_ev.data.fd = fifo_ctod;
-    ep_ev.events = EPOLLIN;
-    epoll_ctl(epfd, EPOLL_CTL_ADD, ep_ev.data.fd, &ep_ev);
+    
 
-
+    cout << "epoll events create success" <<endl;
 
     UniformHeader header;
 
     while (1)
     {
-        //监听其他进程向其发送命令的管道(非阻塞)
+        //监听其他进程向其发送命令的管道(阻塞)
+        cout<<"epoll waiting ..."<<endl;
         int count = epoll_wait(epfd, events, MAXEVENTS, -1);
-        if (count < 0)
+        if (count == -1)
         {
             perror("epoll wait error");
+            exit(-1);
         }
+        cout << "epoll count:" <<count <<endl;
         for (int i = 0; i < count; i++)
         {
+
             //若该管道有命令写入
             if (events[i].events | EPOLLIN)
             {
                 //读出相应的命令头
-                int len = recv(events[i].data.fd, &header, sizeof(UniformHeader), MSG_WAITALL);
+                int len = read(events[i].data.fd, &header, sizeof(UniformHeader));
                 if (len <= 0)
                 {
-                    log.writeLog(Log::ERROR, "recv() error when read header");
+                    //对端连接断开
+                    log.writeLog(Log::ERROR, string("fifo closed ")+to_string(events[i].data.fd));
+                    exit(-1);
                 }
+                cout << header.p << " "<<header.len<<endl;
 
                 //申请相应大小的空间
                 void *temp = new char[header.len];
 
                 //读入命令
-                len = recv(events[i].data.fd, temp, header.len, MSG_WAITALL);
+                len = read(events[i].data.fd, temp, header.len);
                 if (len <= 0)
                 {
-                    log.writeLog(Log::ERROR, "recv() error when read body");
+                    //对端连接断开
+                    log.writeLog(Log::ERROR, string("fifo closed ")+to_string(events[i].data.fd));
+                    exit(-1);
                 }
 
                 //将其插入命令头队列的队尾
@@ -678,21 +704,27 @@ int Database::Run()
 
             //执行对应的操作数据库命令
             do_mysql_cmd(header);
+
+        
         }
+       
         //若命令执行结果队列不为空
         while(!res_header_queue.empty())
         {
+            
             //取出结果队列第一个元素
             header = res_header_queue.front();
-
+            cout << header.p<<" "<<header.len <<endl;
             //清除队首元素
             res_header_queue.pop();
 
+            
             //向相应的管道发送结果
             send_back(header);
             
 
         }
+        //getchar();
     }
     
 }
@@ -708,9 +740,11 @@ int Database::do_mysql_cmd(UniformHeader h)
         //get cmd body
         SigninBody *body = (SigninBody *)cmd_queue.front();
         string user_pwd;
+        pair <string,string> uid_pwd;
 
-        //cout<<body->IP<<endl;
-        
+        //cout<<body->Password<<endl;
+        log.writeLog(Log::INFO, "[Login] IP:"+string(body->IP)+" Username:"+string(body->Username));
+
 
         //生成返回包的头
         res_header.len = sizeof(SigninresBody);
@@ -719,32 +753,40 @@ int Database::do_mysql_cmd(UniformHeader h)
 
         //生成返回包的身
         SigninresBody *res = new SigninresBody[1];
-        strcpy(res->Session,body->Session);
+        
 
         //从数据库找该用户
-        user_pwd = get_uid_pwd_by_uname(body->Username).second;
+        uid_pwd = get_uid_pwd_by_uname(body->Username);
+        user_pwd = uid_pwd.second;
+        strcpy(res->Session,"");
 
         //用户不存在
         if(user_pwd == "NULL")
         {
             res->code = SIGNIN_UNEXIST_USERNAME;
+            log.writeLog(Log::INFO,"[Login Failed] UNEXIST_USERNAME");
         }
         //用户存在
         else
         {
             if(MD5(body->Password)!= user_pwd)
             {
+                cout << MD5(body->Password)<<endl;
                 res->code = SIGNIN_INCORRECT_PASSWORD;
+                log.writeLog(Log::INFO,"[Login Failed] INCORRECT_PASSWORD");
             }
             else
             {
                 //登陆成功 更新数据
+                strcpy(res->Session,uid_pwd.first.c_str());
                 res->code = SIGNIN_SUCCESS;
                 Users_Update(body->Username,body->IP);
                 //log.writeLog(Log::INFO,string("update user ")+body->Username+" success");
+                log.writeLog(Log::INFO,"[Login Success]");
             }
         }
         
+       
         //将包加入写队列 
         res_queue.push(res);
         
@@ -760,43 +802,53 @@ int Database::do_mysql_cmd(UniformHeader h)
         
         pair <string,string> uid_pwd;
 
-        cout << "IP:" <<body->IP<<endl;
-        cout << "Password" <<body->Password <<endl;
-        cout << "Username" << body->Username <<endl;
+        //注册日志
+        log.writeLog(Log::INFO, "[Register] IP:"+string(body->IP)+" Username:"+string(body->Username));
 
         //生成返回包的头
         res_header.len = sizeof(SignupresBody);
         res_header.p = PackageType::SIGNUP_RES;
         res_header_queue.push(res_header);
 
+        
+        
          //生成返回包的身
         SignupresBody *res = new SignupresBody[1];
         
 
         uid_pwd = get_uid_pwd_by_uname(body->Username);
-        
 
         //未找到该用户
         if(uid_pwd.second == "NULL")
         {
             //为该用户创建新的表项
-            Users_Insert(body->Username,MD5(body->Password),body->IP);
+            Users_Insert(body->Username,body->Password,body->IP);
             res->code = SIGNUP_SUCCESS;
+
+            uid_pwd = get_uid_pwd_by_uname(body->Username);
+            cout<<uid_pwd.first<<" "<<uid_pwd.second<<endl;
             //给session赋值
             strcpy(res->Session,uid_pwd.first.c_str());
+
+            log.writeLog(Log::INFO,"[Register Success]");
         }
         else
         {
             //告知用户该用户名已存在 
+
             res->code = SIGNUP_EXISTED_USERNAME;
+            strcpy(res->Session,"");
+            log.writeLog(Log::INFO,"[Register Failed]");
         }
-        
         
         //将包加入写队列 
         res_queue.push(res);
 
+       
         //释放内存
+        
         delete body;
+        
     }
 
     //若为文件上传请求 同名文件的覆盖还没做
@@ -809,6 +861,9 @@ int Database::do_mysql_cmd(UniformHeader h)
         res_header.p = PackageType::UPLOAD_RESP;
         res_header_queue.push(res_header);
 
+        log.writeLog(Log::INFO, "[Upload Req] Uid:"+string(body->Session)+" FileName:"+string(body->fileName)+" Filesize:"+to_string(body->fileSize)+" Path:"+string(body->path)+" Isdir:"+to_string(body->isDir));
+
+
          //生成返回包的身
         UploadRespBody *res = new UploadRespBody[1];
         strcpy(res->Session,body->Session);
@@ -818,16 +873,18 @@ int Database::do_mysql_cmd(UniformHeader h)
         {
             FileIndex_Refinc(body->MD5);
             res->code = UPLOAD_ALREADY_HAS;
+            log.writeLog(Log::INFO,"[Upload Req Failed] ALREADY_HAS");
         } 
         else
         {
             Files_Insert(body->Session,body->fileName,body->fileSize,body->path,body->MD5,body->isDir);
             FileIndex_Insert(body->MD5);
             res->code = UPLOAD_SUCCESS;
+            log.writeLog(Log::INFO,"[Upload Req Success]");
         }
         
 
-
+    
         //将包加入写队列 
         res_queue.push(res);
 
@@ -887,7 +944,7 @@ int Database::do_mysql_cmd(UniformHeader h)
         
         res->code = COPY_SUCCESS;
 
-
+       
         //将包加入写队列 
         res_queue.push(res);
 
@@ -911,7 +968,7 @@ int Database::do_mysql_cmd(UniformHeader h)
         
         res->code = MOVE_SUCCESS;
 
-
+        
         //将包加入写队列 
         res_queue.push(res);
 
@@ -935,7 +992,7 @@ int Database::do_mysql_cmd(UniformHeader h)
         
         res->code = DELETE_SUCCESS;
 
-
+        
         //将包加入写队列 
         res_queue.push(res);
 
@@ -943,51 +1000,59 @@ int Database::do_mysql_cmd(UniformHeader h)
     }
 
     cmd_queue.pop();
+    return 1;
 }
 
 
 int Database::send_back(UniformHeader header)
 {
-    if(header.p == COPY_RES)
+    if(header.p == PackageType::COPY_RES)
     {
         CopyRespBody *body = (CopyRespBody*)res_queue.front();
-        send(fifo_dtoc,body,sizeof(CopyRespBody),0);
+        write(fifo_dtoc,&header,sizeof(header));
+        write(fifo_dtoc,body,sizeof(CopyRespBody));
         delete body;
     }
-    else if(header.p == MOVE_RES)
+    else if(header.p == PackageType::MOVE_RES)
     {
         MoveRespBody *body = (MoveRespBody*)res_queue.front();
-        send(fifo_dtoc,body,sizeof(MoveRespBody),0);
+        write(fifo_dtoc,&header,sizeof(header));
+        write(fifo_dtoc,body,sizeof(MoveRespBody));
         delete body;
     }
-    else if(header.p == DELETE_RES)
+    else if(header.p == PackageType::DELETE_RES)
     {
         DeleteRespBody *body = (DeleteRespBody*)res_queue.front();
-        send(fifo_dtoc,body,sizeof(DeleteRespBody),0);
+        write(fifo_dtoc,&header,sizeof(header));
+        write(fifo_dtoc,body,sizeof(DeleteRespBody));
         delete body;
     }
-    else if(header.p == SIGNIN_RES)
+    else if(header.p == PackageType::SIGNIN_RES)
     {
         SigninresBody *body = (SigninresBody*)res_queue.front();
-        send(fifo_dtoc,body,sizeof(SigninresBody),0);
+        write(fifo_dtoc,&header,sizeof(header));
+        write(fifo_dtoc,body,sizeof(SigninresBody));
         delete body;
     }
-    else if(header.p == SIGNUP_RES)
+    else if(header.p == PackageType::SIGNUP_RES)
     {
         SignupresBody *body = (SignupresBody*)res_queue.front();
-        send(fifo_dtoc,body,sizeof(SignupresBody),0);
+        write(fifo_dtoc,&header,sizeof(header));
+        write(fifo_dtoc,body,sizeof(SignupresBody));
         delete body;
     }
-    else if (header.p == SYN_RESP)
+    else if (header.p == PackageType::SYN_RESP)
     {
         SYNReqBody *body = (SYNReqBody*)res_queue.front();
-        send(fifo_dtoc,body,sizeof(SYNReqBody),0);
+        write(fifo_dtoc,&header,sizeof(header));
+        write(fifo_dtoc,body,sizeof(SYNReqBody));
         delete body;
     }
-    else if (header.p == UPLOAD_RESP)
+    else if (header.p == PackageType::UPLOAD_RESP)
     {
         UploadRespBody *body = (UploadRespBody*)res_queue.front();
-        send(fifo_dtoc,body,sizeof(UploadRespBody),0);
+        write(fifo_dtoc,&header,sizeof(header));
+        write(fifo_dtoc,body,sizeof(UploadRespBody));
         delete body;
     }
     

@@ -44,15 +44,15 @@ int main()
 
 
     int pid = fork();
-    if(pid ==0 )
+    if(pid != 0 )
     {
-        cout << "child" <<endl;
         Database database(string("../config.conf"),string("../Log/database.log"));
         database.Run();
+        kill(pid,SIGTERM);
     }
     else
     {
-        cout<<"parent"<<endl;
+
         fifo_ctod=open(path_fifo_ctod.c_str(),O_WRONLY);
         fifo_dtoc=open(path_fifo_dtoc.c_str(),O_RDONLY);
         
@@ -63,6 +63,8 @@ int main()
         fifo_dtos=open(path_fifo_dtos.c_str(),O_RDONLY);
 
         sleep(1);
+        test = UPLOAD_TEST;
+
         if(test == SIGNUP_TEST || test == ALL)
         {
             UniformHeader header;
@@ -75,18 +77,69 @@ int main()
             strcpy(body.Password,"202CB962AC59075B964B07152D234B70");
             strcpy(body.Username,"test");
 
-            send(fifo_ctod,&header,sizeof(header),0);
-            send(fifo_ctod,&body,sizeof(body),0);
+            write(fifo_ctod,&header,sizeof(header));
+            write(fifo_ctod,&body,sizeof(body));
 
 
-            recv(fifo_dtoc,&header,sizeof(header),MSG_WAITALL);
-            recv(fifo_dtoc,&res_body,sizeof(res_body),MSG_WAITALL);
+            read(fifo_dtoc,&header,sizeof(header));
+            read(fifo_dtoc,&res_body,sizeof(res_body));
+
+            cout<<"code:" <<res_body.code <<endl;
+            cout<<"session:"<<res_body.Session <<endl;
+        }
+
+        else if(test == SIGNIN_TEST || test == ALL)
+        {
+            UniformHeader header;
+            header.len = sizeof(SigninBody);
+            header.p = PackageType::SIGNIN;
+
+            SigninBody body;
+            SigninresBody res_body;
+            strcpy(body.IP,"192.168.80.88");
+            strcpy(body.Password,"d9840773233fa6b19fde8caf765402f5");
+            strcpy(body.Username,"test");
+            
+
+            write(fifo_ctod,&header,sizeof(header));
+            write(fifo_ctod,&body,sizeof(body));
+
+
+            read(fifo_dtoc,&header,sizeof(header));
+            read(fifo_dtoc,&res_body,sizeof(res_body));
+
+            cout<<"code:" <<res_body.code <<endl;
+            cout<<"session:"<<res_body.Session <<endl;
+        }
+
+        else if(test == UPLOAD_TEST || test == ALL)
+        {
+            UniformHeader header;
+            header.len = sizeof(UploadReqBody);
+            header.p = PackageType::UPLOAD_REQ;
+
+            UploadReqBody body;
+            UploadRespBody res_body;
+            strcpy(body.fileName,"my_first_file");
+            body.fileSize = 100;
+            body.isDir = 0;
+            strcpy(body.MD5,"bf083d4ab960620b645557217dd59a49");
+            strcpy(body.path,"/");
+            strcpy(body.Session,"4");
+            
+
+            write(fifo_ctod,&header,sizeof(header));
+            write(fifo_ctod,&body,sizeof(body));
+
+
+            read(fifo_dtoc,&header,sizeof(header));
+            read(fifo_dtoc,&res_body,sizeof(res_body));
 
             cout<<"code:" <<res_body.code <<endl;
             cout<<"session:"<<res_body.Session <<endl;
         }
         
-        kill(pid,SIGTERM);
+       
     }
     
     
