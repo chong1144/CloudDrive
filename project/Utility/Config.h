@@ -5,7 +5,8 @@
 #include <vector>
 #include <iostream>
 #include <fstream>
-#include<algorithm>
+#include <algorithm>
+#include <cstring>
 
 using std::map;
 using std::pair;

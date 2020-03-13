@@ -2,6 +2,7 @@
 #include <iostream>
 #include <fstream>
 #include <sys/timeb.h>
+#include <ctime>
 using std::endl;
 using std::ios;
 using std::to_string;

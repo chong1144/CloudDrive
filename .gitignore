@@ -1,7 +1,17 @@
-# ╡Бйтнд╪Ч╪п
+# О©╫О©╫О©╫О©╫О©╫д╪О©╫О©╫О©╫
 */test/*
 */*/test/*
 report/draft/*
 .vscode/*
 project/Test/*.o
 project/Test/Database_test
+.vscode/*
+project/.vs/CloudDrive/v16/.suo
+*.db
+*.opendb
+*.ipch
+*.sln
+*.vcxproj
+*.filters
+*.user
+*.cache
