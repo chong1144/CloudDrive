@@ -133,6 +133,7 @@ public:
 
     //funtion in one
     int do_mysql_cmd(UniformHeader h);
+    int send_back(UniformHeader header);
 
     pair<string,string> get_uid_pwd_by_uname(string Username);
     int Users_Insert(string Username,string Password,string IP);
@@ -669,13 +670,24 @@ int Database::Run()
             header = header_queue.front();
 
             //清除队首元素
-            cmd_queue.pop();
+            header_queue.pop();
 
             //执行对应的操作数据库命令
             do_mysql_cmd(header);
+        }
+        //若命令执行结果队列不为空
+        if(!res_header_queue.empty())
+        {
+            //取出结果队列第一个元素
+            header = res_header_queue.front();
 
-            //将命令执行结果传回相应的模块
-            //send(result, fifo);
+            //清除队首元素
+            res_header_queue.pop();
+
+            //向相应的管道发送结果
+            send_back(header);
+            }
+
         }
     }
 }
@@ -919,4 +931,49 @@ int Database::do_mysql_cmd(UniformHeader h)
     }
 
     cmd_queue.pop();
+}
+
+
+int Database::send_back(UniformHeader header)
+{
+    if(header.p == COPY_RES)
+    {
+        CopyRespBody *body = (CopyRespBody*)res_queue.front();
+        send(fifo_dtoc,body,sizeof(CopyRespBody),0);
+    }
+    else if(header.p == MOVE_RES)
+    {
+        MoveRespBody *body = (MoveRespBody*)res_queue.front();
+        send(fifo_dtoc,body,sizeof(MoveRespBody),0);
+    }
+    else if(header.p == DELETE_RES)
+    {
+        DeleteRespBody *body = (DeleteRespBody*)res_queue.front();
+        send(fifo_dtoc,body,sizeof(DeleteRespBody),0);
+    }
+    else if(header.p == SIGNIN_RES)
+    {
+        SigninresBody *body = (SigninresBody*)res_queue.front();
+        send(fifo_dtoc,body,sizeof(SigninresBody),0);
+    }
+    else if(header.p == SIGNUP_RES)
+    {
+        SignupresBody *body = (SignupresBody*)res_queue.front();
+        send(fifo_dtoc,body,sizeof(SignupresBody),0);
+    }
+    else if (header.p == SYN_RESP)
+    {
+        SYNReqBody *body = (SYNReqBody*)res_queue.front();
+        send(fifo_dtoc,body,sizeof(SYNReqBody),0);
+    }
+    else if (header.p == UPLOAD_RESP)
+    {
+        UploadRespBody *body = (UploadRespBody*)res_queue.front();
+        send(fifo_dtoc,body,sizeof(UploadRespBody),0);
+    }
+    
+    
+
+    delete res_queue.front();
+    res_queue.pop();
 }
