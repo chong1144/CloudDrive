@@ -1,4 +1,4 @@
-#include "common.h"
+#include "Config.h"
 
 using std::cerr;
 using std::cout;

@@ -3,6 +3,9 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <iostream>
+#include <fstream>
+#include<algorithm>
 
 using std::map;
 using std::pair;

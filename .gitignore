@@ -3,3 +3,5 @@
 */*/test/*
 report/draft/*
 .vscode/*
+project/Test/*.o
+project/Test/Database_test

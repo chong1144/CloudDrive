@@ -7,7 +7,6 @@
 #include <string>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <mysql.h>
 #include <fstream>
 #include <fcntl.h>
 #include <sys/socket.h>
@@ -16,6 +15,7 @@
 #include <string.h>
 #include <ctime>
 #include <map>
+#include<mysql/mysql.h>
 
 using std::cout;
 using std::endl;
@@ -36,12 +36,13 @@ using std::map;
 #define MAXEVENTS 5
 #define BITMAP_SIZE 65535
 
-//config file
-#define CONFIG_FILE "../Config.conf"
 
-//log file
-#define LOG_FILE "../Log/database.log"
 
+
+
+string MD5(const char *data);
+string generate_string(string src);
+string generate_timestamp();
 
 //utility
 string MD5(const char * data)
@@ -128,7 +129,7 @@ private:
     Log log;
 
 public:
-    Database();
+    Database(string config_file,string log_file);
     int Run();
 
     //funtion in one
@@ -163,7 +164,7 @@ public:
 };
 
 //connect database
-Database::Database() : config(CONFIG_FILE), log(LOG_FILE)
+Database::Database(string config_file,string log_file) : config(config_file), log(log_file)
 {
     //init mysql config
     this->mysqlHostName = config.getValue("Database", "hostName");
@@ -193,18 +194,19 @@ Database::Database() : config(CONFIG_FILE), log(LOG_FILE)
     mysql_set_character_set(mysql, "gbk");
 
     //open fifo
-    fifo_ctod = open(config.getValue("Global", "fifo_ctod").c_str(), O_RDONLY);
-    fifo_dtoc = open(config.getValue("Global", "fifo_dtoc").c_str(), O_WRONLY);
-    fifo_rtod = open(config.getValue("Global", "fifo_rtod").c_str(), O_RDONLY);
-    fifo_dtor = open(config.getValue("Global", "fifo_dtor").c_str(), O_WRONLY);
-    fifo_stod = open(config.getValue("Global", "fifo_stod").c_str(), O_RDONLY);
-    fifo_dtos = open(config.getValue("Global", "fifo_dtos").c_str(), O_WRONLY);
-
+    fifo_ctod = open(config.getValue("Global", "path_fifo_ctod").c_str(), O_RDONLY);
+    fifo_dtoc = open(config.getValue("Global", "path_fifo_dtoc").c_str(), O_WRONLY);
+    fifo_rtod = open(config.getValue("Global", "path_fifo_rtod").c_str(), O_RDONLY);
+    fifo_dtor = open(config.getValue("Global", "path_fifo_dtor").c_str(), O_WRONLY);
+    fifo_stod = open(config.getValue("Global", "path_fifo_stod").c_str(), O_RDONLY);
+    fifo_dtos = open(config.getValue("Global", "path_fifo_dtos").c_str(), O_WRONLY);
+     
     if (fifo_ctod < 0 || fifo_dtoc < 0 || fifo_rtod < 0 || fifo_dtor < 0 || fifo_stod < 0 || fifo_dtor < 0)
     {
         cout << "open fifo error" << endl;
         exit(-1);
     }
+    cout << "open fifo success"<<endl;
 }
 
 //disconnect from database
@@ -624,12 +626,14 @@ int Database::Run()
     ep_ev.events = EPOLLIN;
     epoll_ctl(epfd, EPOLL_CTL_ADD, ep_ev.data.fd, &ep_ev);
 
+
+
     UniformHeader header;
 
     while (1)
     {
-        //监听其他进程向其发送命令的管道(阻塞)
-        int count = epoll_wait(epfd, events, MAXEVENTS, NULL);
+        //监听其他进程向其发送命令的管道(非阻塞)
+        int count = epoll_wait(epfd, events, MAXEVENTS, -1);
         if (count < 0)
         {
             perror("epoll wait error");
@@ -653,7 +657,7 @@ int Database::Run()
                 len = recv(events[i].data.fd, temp, header.len, MSG_WAITALL);
                 if (len <= 0)
                 {
-                    log.writeLog(Log::ERROR, "recv() error when rcve body");
+                    log.writeLog(Log::ERROR, "recv() error when read body");
                 }
 
                 //将其插入命令头队列的队尾
@@ -664,7 +668,7 @@ int Database::Run()
             }
         }
         //若事件队列不为空
-        if (!header_queue.empty())
+        while (!header_queue.empty())
         {
             //取出事件队列的第一个元素
             header = header_queue.front();
@@ -676,7 +680,7 @@ int Database::Run()
             do_mysql_cmd(header);
         }
         //若命令执行结果队列不为空
-        if(!res_header_queue.empty())
+        while(!res_header_queue.empty())
         {
             //取出结果队列第一个元素
             header = res_header_queue.front();
@@ -686,10 +690,11 @@ int Database::Run()
 
             //向相应的管道发送结果
             send_back(header);
-            }
+            
 
         }
     }
+    
 }
 
 int Database::do_mysql_cmd(UniformHeader h)
@@ -703,6 +708,9 @@ int Database::do_mysql_cmd(UniformHeader h)
         //get cmd body
         SigninBody *body = (SigninBody *)cmd_queue.front();
         string user_pwd;
+
+        //cout<<body->IP<<endl;
+        
 
         //生成返回包的头
         res_header.len = sizeof(SigninresBody);
@@ -751,6 +759,10 @@ int Database::do_mysql_cmd(UniformHeader h)
         SignupBody *body = (SignupBody *)cmd_queue.front();
         
         pair <string,string> uid_pwd;
+
+        cout << "IP:" <<body->IP<<endl;
+        cout << "Password" <<body->Password <<endl;
+        cout << "Username" << body->Username <<endl;
 
         //生成返回包的头
         res_header.len = sizeof(SignupresBody);
@@ -940,40 +952,47 @@ int Database::send_back(UniformHeader header)
     {
         CopyRespBody *body = (CopyRespBody*)res_queue.front();
         send(fifo_dtoc,body,sizeof(CopyRespBody),0);
+        delete body;
     }
     else if(header.p == MOVE_RES)
     {
         MoveRespBody *body = (MoveRespBody*)res_queue.front();
         send(fifo_dtoc,body,sizeof(MoveRespBody),0);
+        delete body;
     }
     else if(header.p == DELETE_RES)
     {
         DeleteRespBody *body = (DeleteRespBody*)res_queue.front();
         send(fifo_dtoc,body,sizeof(DeleteRespBody),0);
+        delete body;
     }
     else if(header.p == SIGNIN_RES)
     {
         SigninresBody *body = (SigninresBody*)res_queue.front();
         send(fifo_dtoc,body,sizeof(SigninresBody),0);
+        delete body;
     }
     else if(header.p == SIGNUP_RES)
     {
         SignupresBody *body = (SignupresBody*)res_queue.front();
         send(fifo_dtoc,body,sizeof(SignupresBody),0);
+        delete body;
     }
     else if (header.p == SYN_RESP)
     {
         SYNReqBody *body = (SYNReqBody*)res_queue.front();
         send(fifo_dtoc,body,sizeof(SYNReqBody),0);
+        delete body;
     }
     else if (header.p == UPLOAD_RESP)
     {
         UploadRespBody *body = (UploadRespBody*)res_queue.front();
         send(fifo_dtoc,body,sizeof(UploadRespBody),0);
+        delete body;
     }
     
     
 
-    delete res_queue.front();
+    
     res_queue.pop();
 }
