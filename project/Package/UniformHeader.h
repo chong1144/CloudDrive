@@ -25,8 +25,11 @@ enum PackageType
     SYN_PUSH,        // 同步信号 发送一个目录下的信息
 
     COPY,            // 拷贝文件
+    COPY_RES,
     MOVE,            // 复制文件
+    MOVE_RES,
     DELETE,          // 删除文件
+    DELETE_RES
     // MKDIR,          // 新建文件夹
 };
 
@@ -52,8 +55,11 @@ const static std::map<PackageType, uint16_t> PackageSizeMap{
     {PackageType::SYN_PUSH, sizeof(SYNPushBody)},
     
     {PackageType::COPY, sizeof(CopyBody)},
+    {PackageType::COPY_RES,sizeof(CopyRespBody)},
     {PackageType::MOVE, sizeof(MoveBody)},
+    {PackageType::MOVE_RES,sizeof(MoveRespBody)},
     {PackageType::DELETE, sizeof(DeleteBody)},
+    {PackageType::DELETE_RES, sizeof(DeleteRespBody)},
 };
 
 // 统一的头包 每个指令发送前都要有的

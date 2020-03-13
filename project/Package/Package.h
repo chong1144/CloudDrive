@@ -34,7 +34,10 @@ const uint16_t MD5Length = 64;
 #include "SYNPushBody.h"
 
 #include "MoveBody.h"
+#include "MoveRespBody.h"
 #include "CopyBody.h"
+#include "CopyRespBody.h"
 #include "DeleteBody.h"
+#include "DeleteRespBody.h"
 
 #include "UniformHeader.h"

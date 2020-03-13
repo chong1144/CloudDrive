@@ -3,8 +3,8 @@
 
 enum MoveRespCodes
 {
-    DELETE_SUCCESS,
-    DELETE_FAILED
+    MOVE_SUCCESS,
+    MOVE_FAILED
 };
 
 

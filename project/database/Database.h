@@ -15,11 +15,16 @@
 #include <openssl/md5.h>
 #include <string.h>
 #include <ctime>
+#include <map>
 
 using std::cout;
 using std::endl;
 using std::queue;
 using std::string;
+using std::pair;
+using std::to_string;
+using std::vector;
+using std::map;
 
 //table names
 #define FILES "Files"
@@ -29,6 +34,7 @@ using std::string;
 // const
 #define BUF_SIZE 1024 * 1024
 #define MAXEVENTS 5
+#define BITMAP_SIZE 65535
 
 //config file
 #define CONFIG_FILE "../Config.conf"
@@ -92,9 +98,9 @@ private:
 
     //mysql configs
     string databaseName;
-    string password;
-    string userName;
-    string hostName;
+    string mysqlPassword;
+    string mysqlUserName;
+    string mysqlHostName;
 
     //receive model to/from database model
     int fifo_rtod;
@@ -128,10 +134,29 @@ public:
     //funtion in one
     int do_mysql_cmd(UniformHeader h);
 
-    string get_pwd_by_uname(string Username);
-    int insert_Users(string Username,string Password,string IP);
-    int update_Users(string Username,string IP);
+    pair<string,string> get_uid_pwd_by_uname(string Username);
+    int Users_Insert(string Username,string Password,string IP);
+    int Users_Update(string Username,string IP);
 
+
+    
+    bool Files_Isdir(string Uid,string Filename,string path );
+    pair<int,string> Files_Get_Size_Hash(string Uid,string Filename,string path);
+    int Files_Insert(string Uid,string Filename,int size,string path,string hash,bool Isdir);
+    int Files_Move(string Uid,string Filename,string path,string FilenameTo ,string pathTo);
+    int Files_Copy(string Uid,string Filename,string path,string FilenameTo ,string pathTo);
+    int Files_Delete(string Uid,string Filename,string path);
+    vector<pair<string,string>>get_child_files(string Uid,string path);
+
+    int FileIndex_Insert(string hash);
+    bool file_exist(string hashCode);
+    int FileIndex_Delete(string hash);
+    pair<int,int> FileIndex_Get_Ref_Complete(string hash);
+    int FileIndex_Refinc(string hash);
+    int FileIndex_Refdec(string hash);
+    string FileIndex_GetBitmap(string hash);
+    int FileIndex_UpdateRef(string hash,int Refcount);
+    int FileIndex_UpdataBitmap(string hash,string Bitmap);
 
     ~Database();
 };
@@ -140,10 +165,10 @@ public:
 Database::Database() : config(CONFIG_FILE), log(LOG_FILE)
 {
     //init mysql config
-    this->hostName = config.getValue("Database", "hostName");
-    this->userName = config.getValue("Database", "userName");
+    this->mysqlHostName = config.getValue("Database", "hostName");
+    this->mysqlUserName = config.getValue("Database", "userName");
     this->databaseName = config.getValue("Database", "DatabaseName");
-    this->password = config.getValue("Database", "password");
+    this->mysqlPassword = config.getValue("Database", "password");
 
     //connect mysql database
     /* 初始化 mysql 变量，失败返回NULL */
@@ -156,7 +181,7 @@ Database::Database() : config(CONFIG_FILE), log(LOG_FILE)
     /* 连接数据库，失败返回NULL
  *        1、mysqld没运行
  *               2、没有指定名称的数据库存在 */
-    if (mysql_real_connect(mysql, hostName.c_str(), userName.c_str(), password.c_str(), databaseName.c_str(), 0, NULL, 0) == NULL)
+    if (mysql_real_connect(mysql, mysqlHostName.c_str(), mysqlUserName.c_str(), mysqlPassword.c_str(), databaseName.c_str(), 0, NULL, 0) == NULL)
     {
         cout << "mysql_real_connect failed(" << mysql_error(mysql) << ")" << endl;
         exit(-1);
@@ -186,10 +211,17 @@ Database::~Database()
 {
     mysql_close(mysql);
 }
+/***********************************
+ * 
+ * functions for table Users
+ * 
+ * 
+ * ********************************/
 
-string Database::get_pwd_by_uname(string Username)
+pair<string,string> Database::get_uid_pwd_by_uname(string Username)
 {
-    string cmd = "select Password from Users where Uname="+generate_string(Username);
+    pair<string,string> temp;
+    string cmd = "select Uid,Password from Users where Uname="+generate_string(Username);
     /* 进行查询，成功返回0，不成功非0
          1、查询字符串存在语法错误
                 2、查询不存在的数据表 */
@@ -207,17 +239,21 @@ string Database::get_pwd_by_uname(string Username)
     // 若找不到该用户
     if((row = mysql_fetch_row(result)) == NULL)
     {
-        return string("NULL");
+        temp.second = "NULL";
+        temp.second = "NULL";
+        return temp;
     }
         
     else
     {
-        return string(row[0]);
+        temp.first = row[0];
+        temp.second = row[1];
+        return temp;
     }
 
 }
 
-int Database::insert_Users(string Username,string Password, string IP)
+int Database::Users_Insert(string Username,string Password, string IP)
 {
     //数据顺序 Uname,Password,IP,Lastlogintime,Createtime
     string cmd = string("insert into Users values(") +generate_string(Username) +","+generate_string(MD5(Password.c_str()))+","+generate_string(IP)+","+generate_timestamp()+","+generate_timestamp() +");";
@@ -230,10 +266,338 @@ int Database::insert_Users(string Username,string Password, string IP)
 
 }
 
-int Database::update_Users(string Username,string IP)
+int Database::Users_Update(string Username,string IP)
 {
     string cmd = string("update Users set IP=")+generate_string(IP)+","+"Lastlogintime="+generate_timestamp()+"where Uname="+generate_string(Username) +";";
     if (mysql_query(mysql, cmd.c_str()))
+    {
+        log.writeLog(Log::ERROR,string("mysql_query failed(")+string(mysql_error(mysql))+string(")"));
+        return 0;
+    }
+    return 1;
+}
+
+/***********************************
+ * 
+ * functions for table Files
+ * 
+ * 
+ * ********************************/
+
+bool Database::Files_Isdir(string Uid,string Filename,string path)
+{
+    string cmd = "select Isdir from Files where Uid="+ \
+    generate_string(Uid)+" and "+\
+    "Filename="+generate_string(Filename)+" and "+\
+    "Path="+generate_string(path)+";";
+
+    if (mysql_query(mysql, cmd.c_str()))
+    {
+        log.writeLog(Log::ERROR,string("mysql_query failed(")+string(mysql_error(mysql))+string(")"));
+    }
+
+     if ((result = mysql_store_result(mysql)) == NULL)
+    {
+        log.writeLog(Log::ERROR,string("mysql_store_result failed"));
+    }
+    
+    // 若找不到文件
+    if((row = mysql_fetch_row(result)) == NULL)
+    {
+        return false;
+    }
+    else
+    {
+        return atoi(row[0]) ;
+    }
+}
+
+pair<int,string> Database::Files_Get_Size_Hash(string Uid,string Filename,string path)
+{
+    string cmd = "select Size,Hash from Files where Uid="+ \
+    generate_string(Uid)+" and "+\
+    "Filename="+generate_string(Filename)+" and "+\
+    "Path="+generate_string(path)+";";
+    
+    if (mysql_query(mysql, cmd.c_str()))
+    {
+        log.writeLog(Log::ERROR,string("mysql_query failed(")+string(mysql_error(mysql))+string(")"));
+    }
+
+     if ((result = mysql_store_result(mysql)) == NULL)
+    {
+        log.writeLog(Log::ERROR,string("mysql_store_result failed"));
+    }
+    
+    // 若找不到文件
+    if((row = mysql_fetch_row(result)) == NULL)
+    {
+        return std::make_pair(0,"NULL");
+    }
+    else
+    {
+        return std::make_pair(atoi(row[0]),string(row[1]));
+    }
+}
+
+int Database::Files_Insert(string Uid,string Filename,int size,string path,string hash,bool Isdir)
+{
+    string cmd = "insert into Files values(" + \
+        string(Uid)+","+  \
+        generate_string(Filename)+","+  \
+        to_string(size)+","+ \
+        generate_string(path)+","+                \
+        generate_string(hash)+","+  \
+        generate_timestamp()+","+
+        to_string(Isdir) +");";
+        
+        
+    if (mysql_query(mysql, cmd.c_str()))
+    {
+        log.writeLog(Log::ERROR,string("mysql_query failed(")+string(mysql_error(mysql))+string(")"));
+        return 0;
+    }
+    return 1;
+}
+
+int Database::Files_Delete(string Uid,string Filename,string path)
+{
+    string cmd = "delete  from Files where Uid="+ \
+    generate_string(Uid)+" and "+\
+    "Filename="+generate_string(Filename)+" and "+\
+    "Path="+generate_string(path)+";";
+
+    if (mysql_query(mysql, cmd.c_str()))
+    {
+        log.writeLog(Log::ERROR,string("mysql_query failed(")+string(mysql_error(mysql))+string(")"));
+        return 0;
+    }
+    return 1;
+
+}
+
+int Database::Files_Copy(string Uid,string Filename,string path,string FilenameTo ,string pathTo)
+{
+    pair<int,string> size_hash;
+
+    size_hash = Files_Get_Size_Hash(Uid,Filename,path);
+    bool isDir = Files_Isdir(Uid,Filename,path);
+
+    return Files_Insert(Uid,FilenameTo,size_hash.first,pathTo,size_hash.second,isDir);
+
+}
+
+int Database::Files_Move(string Uid,string Filename,string path,string FilenameTo ,string pathTo)
+{
+    string cmd = string("update Files set")
+    +"Filename="+generate_string(FilenameTo)+","\
+    + "Path="+generate_string(pathTo)
+    +" where"+ \
+    "Uid="+generate_string(Uid)+" and "+\
+    "Filename="+generate_string(Filename)+" and "+\
+    "Path="+generate_string(path)+";";
+
+    if (mysql_query(mysql, cmd.c_str()))
+    {
+        log.writeLog(Log::ERROR,string("mysql_query failed(")+string(mysql_error(mysql))+string(")"));
+        return 0;
+    }
+    return 1;
+
+    
+}
+
+vector<pair<string,string>>Database::get_child_files(string Uid,string path)
+{
+    string cmd = string("select Filename,Isdir from Files where ")+
+    " Uid="+generate_string(Uid)+ " and "\
+    " Path="+generate_string(path)+";";
+
+    vector<pair<string,string>> v;
+
+    if (mysql_query(mysql, cmd.c_str()))
+    {
+        log.writeLog(Log::ERROR,string("mysql_query failed(")+string(mysql_error(mysql))+string(")"));
+    }
+        /* 将查询结果存储起来，出现错误则返回NULL
+        注意：查询结果为NULL，不会返回NULL */
+    if ((result = mysql_store_result(mysql)) == NULL)
+    {
+        log.writeLog(Log::ERROR,string("mysql_store_result failed"));
+    }
+    
+    // 若找不到该用户
+    while((row = mysql_fetch_row(result)) != NULL)
+    {
+        v.push_back(std::make_pair(string(row[0]),string(row[1])));
+    }
+
+    return v;
+}
+
+/***********************************
+ * 
+ * functions for table FileIndex
+ * 
+ * 
+ * ********************************/
+
+bool Database::file_exist(string hashCode)
+{
+    string cmd = "select * from FileIndex where Hash="+generate_string(hashCode);
+    if (mysql_query(mysql, cmd.c_str()))
+    {
+        log.writeLog(Log::ERROR,string("mysql_query failed(")+string(mysql_error(mysql))+string(")"));
+    }
+    
+    if ((result = mysql_store_result(mysql)) != NULL)
+    {
+        log.writeLog(Log::ERROR,string("mysql_store_result failed"));
+    }
+    
+    // 若没有找到相同文件
+    if((int)mysql_num_rows(result) != 0)
+    {
+        return false;
+    }  
+    return true;
+} 
+
+int Database::FileIndex_Insert(string hash)
+{
+    char bitmap[BITMAP_SIZE] ;
+    memset(bitmap,'0',sizeof(bitmap));
+    string cmd = "inster into FileIndex values("+ \
+    generate_string(hash)+","+   \
+    "1"+","+    \
+    generate_string(bitmap)+
+    "0"+");";
+
+    //更新FileIndex表
+    if (mysql_query(mysql, cmd.c_str()))
+    {
+        log.writeLog(Log::ERROR,string("mysql_query failed(")+string(mysql_error(mysql))+string(")"));
+        return 0;
+    }
+    return 1;
+}
+
+int Database::FileIndex_Delete(string hash)
+{
+    string cmd = string("delete from FileIndex where ")
+    + " Hash="+generate_string(hash);
+
+    if (mysql_query(mysql, cmd.c_str()))
+    {
+        log.writeLog(Log::ERROR,string("mysql_query failed(")+string(mysql_error(mysql))+string(")"));
+    }
+
+}
+
+pair<int,int> Database::FileIndex_Get_Ref_Complete(string hash)
+{
+    string cmd = string("select Refcount,Complete from FileIndex where ")+ \
+    "Hash="+generate_string(hash)+";";
+
+    if (mysql_query(mysql, cmd.c_str()))
+    {
+        log.writeLog(Log::ERROR,string("mysql_query failed(")+string(mysql_error(mysql))+string(")"));
+    }
+
+    if ((result = mysql_store_result(mysql)) == NULL)
+    {
+        log.writeLog(Log::ERROR,string("mysql_store_result failed"));
+    }
+    
+    // 若找不到该用户
+    if((row = mysql_fetch_row(result)) == NULL)
+    {
+        return std::make_pair(0,0);
+    }
+    else
+    {
+        return std::make_pair(atoi(row[0]),atoi(row[1]));
+    }
+
+}
+
+int Database::FileIndex_Refinc(string hash)
+{
+    int Refcount = FileIndex_Get_Ref_Complete(hash).first;
+    Refcount ++;
+    return FileIndex_UpdateRef(hash,Refcount);
+}
+
+int Database::FileIndex_Refdec(string hash)
+{
+    int Refcount = FileIndex_Get_Ref_Complete(hash).first;
+    Refcount--;
+
+    if(Refcount <= 0)
+    {
+        return FileIndex_Delete(hash);
+    }
+    else{
+        return FileIndex_UpdateRef(hash,Refcount);
+    }
+}
+
+int Database::FileIndex_UpdateRef(string hash,int Refcount)
+{
+    string cmd=string("update FileIndex set ")+ \
+    " Refcount= "+to_string(Refcount)+\
+    " where "+\
+    " Hash= "+generate_string(hash)+";";
+
+     if (mysql_query(mysql, cmd.c_str()))
+    {
+        log.writeLog(Log::ERROR,string("mysql_query failed(")+string(mysql_error(mysql))+string(")"));
+        return 0;
+    }
+    return 1;
+}
+
+string Database::FileIndex_GetBitmap(string hash)
+{
+    //char Bitmap[BITMAP_SIZE];
+    string Bitmap;
+
+    string cmd = string("select Bitmap from FileIndex where ")+ \
+    "Hash = "+generate_string(hash) + ";";
+
+     if (mysql_query(mysql, cmd.c_str()))
+    {
+        log.writeLog(Log::ERROR,string("mysql_query failed(")+string(mysql_error(mysql))+string(")"));
+    }
+
+    if ((result = mysql_store_result(mysql)) == NULL)
+    {
+        log.writeLog(Log::ERROR,string("mysql_store_result failed"));
+    }
+    
+    // 若找不到该用户
+    if((row = mysql_fetch_row(result)) == NULL)
+    {
+        return "NULL";
+    }
+    else
+    {
+       Bitmap += row[0];
+        return Bitmap;
+    }
+    
+    
+
+}
+
+int Database::FileIndex_UpdataBitmap(string hash,string Bitmap)
+{
+     string cmd=string("update FileIndex set ")+ \
+    " Bitmap= "+generate_string(Bitmap)+\
+    " where "+\
+    " Hash= "+generate_string(hash)+";";
+
+     if (mysql_query(mysql, cmd.c_str()))
     {
         log.writeLog(Log::ERROR,string("mysql_query failed(")+string(mysql_error(mysql))+string(")"));
         return 0;
@@ -338,7 +702,7 @@ int Database::do_mysql_cmd(UniformHeader h)
         strcpy(res->Session,body->Session);
 
         //从数据库找该用户
-        user_pwd = get_pwd_by_uname(body->Username);
+        user_pwd = get_uid_pwd_by_uname(body->Username).second;
 
         //用户不存在
         if(user_pwd == "NULL")
@@ -354,12 +718,16 @@ int Database::do_mysql_cmd(UniformHeader h)
             }
             else
             {
+                //登陆成功 更新数据
                 res->code = SIGNIN_SUCCESS;
+                Users_Update(body->Username,body->IP);
+                //log.writeLog(Log::INFO,string("update user ")+body->Username+" success");
             }
         }
         
         //将包加入写队列 
         res_queue.push(res);
+        
 
         //释放内存
         delete body;
@@ -370,7 +738,7 @@ int Database::do_mysql_cmd(UniformHeader h)
     {
         SignupBody *body = (SignupBody *)cmd_queue.front();
         
-        string user_pwd;
+        pair <string,string> uid_pwd;
 
         //生成返回包的头
         res_header.len = sizeof(SignupresBody);
@@ -380,15 +748,18 @@ int Database::do_mysql_cmd(UniformHeader h)
          //生成返回包的身
         SignupresBody *res = new SignupresBody[1];
         
-      
-        user_pwd = get_pwd_by_uname(body->Username);
+
+        uid_pwd = get_uid_pwd_by_uname(body->Username);
+        
 
         //未找到该用户
-        if(user_pwd == "NULL")
+        if(uid_pwd.second == "NULL")
         {
             //为该用户创建新的表项
-            insert_Users(body->Username,MD5(body->Password),body->IP);
+            Users_Insert(body->Username,MD5(body->Password),body->IP);
             res->code = SIGNUP_SUCCESS;
+            //给session赋值
+            strcpy(res->Session,uid_pwd.first.c_str());
         }
         else
         {
@@ -396,22 +767,18 @@ int Database::do_mysql_cmd(UniformHeader h)
             res->code = SIGNUP_EXISTED_USERNAME;
         }
         
+        
         //将包加入写队列 
         res_queue.push(res);
 
+        //释放内存
+        delete body;
     }
 
     //若为文件上传请求 同名文件的覆盖还没做
     else if(h.p == PackageType::UPLOAD_REQ)
     {
         UploadReqBody *body = (UploadReqBody *)cmd_queue.front();
-        //查找是否存在相同文件
-        cmd = "select * from Files where Hash="+string(body->MD5);
-        string fileName = body->fileName;
-        bool already_exist = 0;
-        char bitmap[65535];
-        //init bitmap
-        memset(bitmap,sizeof(bitmap),"0");
 
         //生成返回包的头
         res_header.len = sizeof(UploadRespBody);
@@ -420,90 +787,33 @@ int Database::do_mysql_cmd(UniformHeader h)
 
          //生成返回包的身
         UploadRespBody *res = new UploadRespBody[1];
+        strcpy(res->Session,body->Session);
 
-       
-        if (mysql_query(mysql, cmd.c_str()))
+        //若文件已存在
+        if(file_exist(body->MD5))
         {
-            log.writeLog(Log::ERROR,string("mysql_query failed(")+string(mysql_error(mysql))+string(")"));
-        }
-       
-        if ((result = mysql_store_result(mysql)) != NULL)
-        {
-            log.writeLog(Log::ERROR,string("mysql_store_result failed"));
-        }
-        
-        // 若没有找到相同文件
-        if((int)mysql_num_rows(result) != 0)
-        {
-           already_exist = 1;
-        }  
-
-        
-        //更新file表
-        cmd = "insert into Files values(" + \
-        string(body->Session)+","+  \
-        "\""+string(MD5(body->fileName))+"\""+","+  \
-        string(std::to_string(body->fileSize))+","+ \
-        "\""+string(body->path)+"\""+","+                \
-        generate_timestamp()+","+                   \
-        std::to_string(already_exist)+","+"0" +");";
-        
-        
-        if (mysql_query(mysql, cmd.c_str()))
-        {
-            log.writeLog(Log::ERROR,string("mysql_query failed(")+string(mysql_error(mysql))+string(")"));
-        }
-
-        //编写更新FileIndex表命令
-        if(!already_exist){
-            cmd = "inster into FileIndex values("+ \
-            "\""+string(MD5(body->MD5))+"\""+","+   \
-            "0"+","+"\""+string(bitmap)+"\""+");";
-        }
-        else{
-            //更新引用数
-            int refcount;
-            cmd = "select Refconut from FileIndex where hash="+string(body->MD5);
-            if (mysql_query(mysql, cmd.c_str()))
-            {
-                log.writeLog(Log::ERROR,string("mysql_query failed(")+string(mysql_error(mysql))+string(")"));
-            }
-            if ((result = mysql_store_result(mysql)) == NULL)
-            {
-                log.writeLog(Log::ERROR,string("mysql_store_result failed"));
-            }
-            if((row = mysql_fetch_row(result)) != NULL){
-                refcount = atoi(row[0]);
-                refcount++;
-            }
-
-            cmd = string("updata FileIndex set Refcount=")+std::to_string(refcount)+" where hash="+string(body->MD5)+";";
-
-        }
-
-        //更新FileIndex表
-        if (mysql_query(mysql, cmd.c_str()))
-        {
-            log.writeLog(Log::ERROR,string("mysql_query failed(")+string(mysql_error(mysql))+string(")"));
-        }
-
-        if(already_exist)
-        {
+            FileIndex_Refinc(body->MD5);
             res->code = UPLOAD_ALREADY_HAS;
-        }
-        else{
+        } 
+        else
+        {
+            Files_Insert(body->Session,body->fileName,body->fileSize,body->path,body->MD5,body->isDir);
+            FileIndex_Insert(body->MD5);
             res->code = UPLOAD_SUCCESS;
         }
+        
+
+
         //将包加入写队列 
         res_queue.push(res);
+
+        delete body;
     }
 
     //若为文件目录同步请求
     else if(h.p == PackageType::SYN_REQ)
     {
         SYNReqBody *body = (SYNReqBody *)cmd_queue.front(); 
-        string cmd = "select Filename,Isdir from Files where Uid="+string(body->Session)+" and Dir="+"\""+string(body->path)+"\""+";";
-
         //生成返回包的头
         res_header.len = sizeof(SYNRespBody);
         res_header.p = PackageType::UPLOAD_RESP;
@@ -511,33 +821,26 @@ int Database::do_mysql_cmd(UniformHeader h)
 
          //生成返回包的身
         SYNRespBody *res = new SYNRespBody[1];
+        strcpy(res->Session,body->Session);
+
+        //获取路径下的子文件和文件夹 结果放在ExternInformation中，存放格式为： 文件/文件夹名,是否为文件夹 空格 文件/文件夹名,是否为文件夹 .....
+        vector<pair<string,string>> children;
         
-        //执行查询语句
-        if (mysql_query(mysql, cmd.c_str()))
-        {
-            log.writeLog(Log::ERROR,string("mysql_query failed(")+string(mysql_error(mysql))+string(")"));
-        }
+        children = get_child_files(body->Session,body->path);
 
-        //获取查询结果
-        if ((result = mysql_store_result(mysql)) != NULL)
-        {
-            log.writeLog(Log::ERROR,string("mysql_store_result failed"));
-        }
+        res->childNum = children.size();
+        string temp="";
+        pair<string,string> filename_isdir;
 
-        res->childNum = (int)mysql_num_rows(result);
-
-        memset(res->ExternInformation,sizeof(res->ExternInformation),0);
-        //遍历查找结果
-        while ((row = mysql_fetch_row(result)) != NULL)
+        while(!children.empty())
         {
-            //存储结构 [文件/文件夹名,是否为文件夹] 空格 [文件/文件夹名,是否为文件夹]...
-           strcat(res->ExternInformation,row[0]);
-           strcat(res->ExternInformation,",");
-           strcat(res->ExternInformation,row[1]);
-           strcat(res->ExternInformation," ");
+            filename_isdir = children.back();
+            children.pop_back();
+
+            temp += filename_isdir.first+","+filename_isdir.second+" ";
         }
+        strcpy(res->ExternInformation,temp.c_str());
         res->code = SYN_SUCCESS;
-
         //将包加入写队列
         res_queue.push(res);
     }
@@ -545,7 +848,74 @@ int Database::do_mysql_cmd(UniformHeader h)
     //若为文件/文件夹拷贝命令
     else if(h.p == PackageType::COPY)
     {
+        CopyBody *body = (CopyBody *)cmd_queue.front();
+
+        //生成返回包的头
+        res_header.len = sizeof(CopyRespBody);
+        res_header.p = PackageType::COPY_RES;
+        res_header_queue.push(res_header);
+
+         //生成返回包的身
+        CopyRespBody *res = new CopyRespBody[1];
+        strcpy(res->Session,body->Session);
+
+        Files_Copy(body->Session,body->fileName,body->path,body->fileNameTo,body->pathTo);
         
+        res->code = COPY_SUCCESS;
+
+
+        //将包加入写队列 
+        res_queue.push(res);
+
+        delete body;
+    }
+    //若为文件移动
+    else if(h.p == PackageType::MOVE)
+    {
+        MoveBody *body = (MoveBody *)cmd_queue.front();
+
+        //生成返回包的头
+        res_header.len = sizeof(MoveRespBody);
+        res_header.p = PackageType::MOVE_RES;
+        res_header_queue.push(res_header);
+
+         //生成返回包的身
+        MoveRespBody *res = new MoveRespBody[1];
+        strcpy(res->Session,body->Session);
+
+        Files_Move(body->Session,body->fileName,body->path,body->fileNameTo,body->pathTo);
+        
+        res->code = MOVE_SUCCESS;
+
+
+        //将包加入写队列 
+        res_queue.push(res);
+
+        delete body;
+    }
+    //若为文件删除
+    else if(h.p == PackageType::DELETE)
+    {
+        DeleteBody *body = (DeleteBody *)cmd_queue.front();
+
+        //生成返回包的头
+        res_header.len = sizeof(DeleteRespBody);
+        res_header.p = PackageType::DELETE_RES;
+        res_header_queue.push(res_header);
+
+         //生成返回包的身
+        DeleteRespBody *res = new DeleteRespBody[1];
+        strcpy(res->Session,body->Session);
+
+        Files_Delete(body->Session,body->fileName,body->path);
+        
+        res->code = DELETE_SUCCESS;
+
+
+        //将包加入写队列 
+        res_queue.push(res);
+
+        delete body;
     }
 
     cmd_queue.pop();
