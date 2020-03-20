@@ -78,4 +78,12 @@ public:
     int EpollWait(const int &epfd, epoll_event* ep_events);
     // epoll 去除句柄
     void EpollDel(const int &epfd, const int &fd);
+    // 获取 socket 的 ip 和 端口
+    bool GetIPPort(const uint32_t &sock, string &ip, uint16_t &port);
+};
+
+struct ControlBufferUnit
+{
+    UniformHeader header;
+    void * body;
 };

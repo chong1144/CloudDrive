@@ -55,6 +55,18 @@ void control::init(const string &configFile)
     // 初始化日志需要用的参数
     l.init(c.getValue("Control", "controlLogPosition"));
 
+    unlink(c.getValue("Global", "path_fifo_ctod").c_str());
+    unlink(c.getValue("Global", "path_fifo_dtoc").c_str());
+    unlink(c.getValue("Global", "path_fifo_stod").c_str());
+    unlink(c.getValue("Global", "path_fifo_dtos").c_str());
+    unlink(c.getValue("Global", "path_fifo_rtod").c_str());
+    unlink(c.getValue("Global", "path_fifo_dtor").c_str());
+
+    unlink(c.getValue("Global", "path_fifo_ctor").c_str());
+    unlink(c.getValue("Global", "path_fifo_rtoc").c_str());
+    unlink(c.getValue("Global", "path_fifo_ctos").c_str());
+    unlink(c.getValue("Global", "path_fifo_stoc").c_str());
+
     // 初始化管道的参数并且创建管道
     if (!createPipe(c.getValue("Global", "path_fifo_ctod")))
         ;
@@ -80,9 +92,9 @@ void control::init(const string &configFile)
     l.writeLog(Log::INFO, "create pipes successfully!");
 
     // 打开管道 没有检查是否打开成功 关闭一些目前不需要的通道
-    // this->fifo_ctod = open(c.getValue("Global", "path_fifo_ctod").c_str(), O_WRONLY);
-    // this->fifo_dtoc = open(c.getValue("Global", "path_fifo_dtoc").c_str(), O_RDONLY);
-    // l.writeLog(Log::INFO, "open ipc with database successfully!");
+    this->fifo_ctod = open(c.getValue("Global", "path_fifo_ctod").c_str(), O_WRONLY);
+    this->fifo_dtoc = open(c.getValue("Global", "path_fifo_dtoc").c_str(), O_RDONLY);
+    l.writeLog(Log::INFO, "open ipc with database successfully!");
 
     // this->fifo_ctos = open(c.getValue("Global", "path_fifo_ctos").c_str(), O_WRONLY);
     // this->fifo_stoc = open(c.getValue("Global", "path_fifo_stoc").c_str(), O_RDONLY);
@@ -164,11 +176,11 @@ void control::waitForClient()
     }
 
     // 将 sock 加入 epoll 监视中
-    this->EpollAdd(epfd, sock, EPOLLIN | EPOLLOUT);
+    this->EpollAdd(epfd, sock, EPOLLIN);
 
     // 将管道加入 epoll 监视
     this->EpollAdd(epfd, this->fifo_dtoc, EPOLLIN);
-    // ???? 
+    // ????
 
     // 申请 epoll_event*
     epoll_event *ep_events = new epoll_event[maxEvent];
@@ -189,6 +201,8 @@ void control::waitForClient()
     int readres;
     char *packet = new char[packetLength];
 
+    queue<ControlBufferUnit> BufferQueue;
+    ControlBufferUnit cu;
     while (1)
     {
         ret = this->EpollWait(epfd, ep_events);
@@ -197,7 +211,7 @@ void control::waitForClient()
             l.writeLog(Log::ERROR, "epoll wait error");
             exit(-1);
         }
-        l.writeLog(Log::INFO, "Here for you");
+        // l.writeLog(Log::INFO, "Here for you");
 
         for (size_t i = 0; i < ret; i++)
         {
@@ -223,6 +237,12 @@ void control::waitForClient()
                     }
 
                     this->EpollAdd(epfd, accres, EPOLLIN | EPOLLOUT);
+                    string ip;
+                    uint16_t port;
+                    GetIPPort(accres, ip, port);
+                    string InfoContent = "Connect with " + ip + ":" + to_string(port);
+                    l.writeLog(Log::INFO, InfoContent);
+
                     sockQueue.push(accres);
                 }
             }
@@ -230,14 +250,24 @@ void control::waitForClient()
             {
                 // 数据库要写东西给我
                 readres = read(this->fifo_dtoc, &u, sizeof(u));
-                if (readres != sizeof(u))
+                if (readres <= 0)
+                {
+                    l.writeLog(Log::ERROR, "connect with database failed");
+                    exit(-1);
+                }
+                else if (readres != sizeof(u))
                 {
                     // 罕见情况
                     l.writeLog(Log::WARNING, "rare situation");
                     break;
                 }
                 readres = read(this->fifo_dtoc, packet, u.len);
-                if (readres != u.len)
+                if (readres <= 0)
+                {
+                    l.writeLog(Log::ERROR, "connect with database failed");
+                    exit(-1);
+                }
+                else if (readres != u.len)
                 {
                     // 罕见情况
                     l.writeLog(Log::WARNING, "rare situation");
@@ -249,7 +279,7 @@ void control::waitForClient()
                 // memcpy(Session, packet, SessionLength);
 
                 // 建立 Session --- sock 映射表
-                if(u.p == PackageType::SIGNIN_RES || u.p == PackageType::SIGNUP_RES)
+                if (u.p == PackageType::SIGNIN_RES || u.p == PackageType::SIGNUP_RES)
                 {
                     string InfoContent = to_string(sockQueue.front()) + "'s Session get " + string(Session);
                     l.writeLog(Log::INFO, InfoContent);
@@ -257,19 +287,30 @@ void control::waitForClient()
                     sockQueue.pop();
                 }
 
-                // 传给 Client 端
-                write(sS.at(Session), &u, sizeof(u));
-                write(sS.at(Session), packet, u.len);
+                cu.header = u;
+                cu.body = (void *)new char[u.len];
+                memcpy(cu.body, packet, u.len);
+
+                BufferQueue.push(cu);
             }
             else if (candidateSockEvents & EPOLLIN)
             {
                 // 收到新的内容
                 readres = read(candidateSock, &u, sizeof(u));
-                if (readres != sizeof(u))
+                if (readres <= 0)
+                {
+                    string ip;
+                    uint16_t port;
+                    GetIPPort(candidateSock, ip, port);
+                    string ErrorContent = "disconnect with client " + ip + ":" + to_string(port);
+                    l.writeLog(Log::ERROR, ErrorContent);
+
+                    EpollDel(epfd, candidateSock);
+                }
+                else if (readres != sizeof(u))
                 {
                     // 罕见情况
                     l.writeLog(Log::WARNING, "rare situation");
-                    exit(-1);
                 }
 
                 switch (u.p)
@@ -312,14 +353,41 @@ void control::waitForClient()
                     break;
 
                 default:
-                    l.writeLog(Log::WARNING, "Shouldn't appear");
+                    l.writeLog(Log::WARNING, "EPOLLHup socket rubbish");
                     break;
                 }
+            }
+            else if (candidateSockEvents & EPOLLOUT)
+            {
+                if (BufferQueue.empty())
+                    continue;
 
+                cu = BufferQueue.front();
+                BufferQueue.pop();
+
+                string Session((char *)cu.body, SessionLength);
+                // 传给 Client 端
+                write(sS.at(Session), &cu.header, sizeof(u));
+                write(sS.at(Session), cu.body, u.len);
+                delete (char *)cu.body;
+
+                l.writeLog(Log::INFO, "Write Success");
+            }
+            else if (candidateSockEvents & EPOLLHUP | candidateSockEvents & EPOLLERR)
+            {
+                EpollDel(epfd, candidateSock);
+
+                l.writeLog(Log::WARNING, "Delete Epollhup socket");
             }
             else
             {
-                l.writeLog(Log::WARNING, "Shouldn't appear");
+                string ip;
+                uint16_t port;
+                GetIPPort(candidateSock, ip, port);
+                string ErrorContent = ip + ":" + to_string(port) + "event: " + to_string(candidateSockEvents);
+                l.writeLog(Log::ERROR, ErrorContent);
+
+                l.writeLog(Log::WARNING, "Shouldn't appear2");
             }
         }
     }
@@ -329,7 +397,8 @@ void control::waitForClient()
 
 void control::EpollAdd(const int &epfd, const int &fd, const uint32_t &events)
 {
-    l.writeLog(Log::INFO, "EpollAdd");
+    string InfoContent = "EpollAdd ";
+    l.writeLog(Log::INFO, InfoContent);
     static epoll_event ep_ev;
     ep_ev.data.fd = fd;
     ep_ev.events = events;
@@ -342,7 +411,7 @@ void control::EpollAdd(const int &epfd, const int &fd, const uint32_t &events)
 
 int control::EpollWait(const int &epfd, epoll_event *ep_events)
 {
-    l.writeLog(Log::INFO, "epollwait begin");
+    // l.writeLog(Log::INFO, "epollwait begin");
     int cnt;
     cnt = epoll_wait(epfd, ep_events, this->maxEvent, -1);
     if (-1 == cnt)
@@ -350,7 +419,7 @@ int control::EpollWait(const int &epfd, epoll_event *ep_events)
         perror("epoll_wait()");
         l.writeLog(Log::ERROR, string("epoll_wait()") + strerror(errno));
     }
-    l.writeLog(Log::INFO, string("epollwait end, cnt: ") + to_string(cnt));
+    // l.writeLog(Log::INFO, string("epollwait end, cnt: ") + to_string(cnt));
     return cnt;
 }
 
@@ -362,4 +431,20 @@ void control::EpollDel(const int &epfd, const int &fd)
         perror("epoll_ctl()");
         l.writeLog(Log::ERROR, string("epoll_ctl()") + strerror(errno));
     }
+}
+
+bool control::GetIPPort(const uint32_t &sock, string &ip, uint16_t &port)
+{
+    size_t temp;
+    if (getpeername(sock, (sockaddr *)&addr, (socklen_t *)&temp) == -1)
+    {
+        l.writeLog(Log::ERROR, "Get ip and port failed");
+
+        return false;
+    }
+
+    ip = string(inet_ntoa(addr.sin_addr));
+    port = addr.sin_port;
+
+    return true;
 }
