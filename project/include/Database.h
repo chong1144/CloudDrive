@@ -36,7 +36,7 @@ using std::map;
 
 // const
 #define BUF_SIZE 1024 * 1024
-#define MAXEVENTS 5
+#define DATABASE_MAXEVENTS 20
 #define BITMAP_SIZE 65535
 
 

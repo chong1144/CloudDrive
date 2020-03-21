@@ -23,6 +23,7 @@ set(MODULES
     Package
     # Test
     Database
+    Upload
 )
 
 foreach(modules ${MODULES})

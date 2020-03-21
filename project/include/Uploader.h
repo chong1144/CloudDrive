@@ -1,3 +1,5 @@
+#pragma once
+
 #include "Package/Package.h"
 #include "Config.h"
 #include "Log.h"
@@ -21,6 +23,8 @@
 #include <sys/epoll.h>
 #include <algorithm>
 #include <set>
+
+
 #define FileIOPath "../config.conf"
 using std::set;
 using std::pair;
@@ -39,26 +43,6 @@ const char CHUNK_EXIST = '1';
 const char CHUNK_NOEXIST = '0';
 const char CHUNK_UPLOADING = '2';
 
-int epoll_add (int epfd, int fd, uint32_t events)
-{
-	static epoll_event ep_ev;
-	ep_ev.data.fd = fd;
-	ep_ev.events = events;
-	if (-1 == epoll_ctl (epfd, EPOLL_CTL_ADD, ep_ev.data.fd, &ep_ev)) {
-		perror ("epoll_ctl()");
-		return -1;
-	}
-	return 0;
-}
-
-int epoll_del (int epfd, int fd)
-{
-	if (-1 == epoll_ctl (epfd, EPOLL_CTL_DEL, fd, nullptr)) {
-		perror ("epoll_ctl()");
-		return -1;
-	}
-	return 0;
-}
 
 struct FileLinker
 {
@@ -156,11 +140,11 @@ class Uploader
     sockaddr_in addr;
 
 public:
-	Uploader(const string& config_file);
+	Uploader(const string& config_file, const string& logFile);
 
 	void openfifo();
 
-	void init(const string&);
+	void init(const string&, const string&);
     
 	void startServer();
 
