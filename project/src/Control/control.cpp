@@ -287,8 +287,9 @@ void control::waitForClient()
                     {
                         string InfoContent = to_string(sockQueue.front()) + "'s Session get " + Session;
                         l.writeLog(Log::INFO, InfoContent);
-                        sS.insert({Session, sockQueue.front()});
-                        Ss.insert({sockQueue.front(), Session});
+                        
+                        sS[Session] = sockQueue.front();
+                        Ss[sockQueue.front()] = Session;
                         sockQueue.pop();
                     }
                     else 
@@ -302,6 +303,12 @@ void control::waitForClient()
                 memcpy(cu.body, packet, u.len);
 
                 BufferQueue.push(cu);
+            }
+            else if (candidateSockEvents & EPOLLHUP | candidateSockEvents & EPOLLERR)
+            {
+                EpollDel(epfd, candidateSock);
+
+                l.writeLog(Log::WARNING, "Delete Epollhup socket");
             }
             else if (candidateSockEvents & EPOLLIN)
             {
@@ -386,7 +393,6 @@ void control::waitForClient()
                     continue;
 
                 cu = BufferQueue.front();
-                BufferQueue.pop();
 
                 if(cu.header.p == SIGNIN_RES || cu.header.p == SIGNUP_RES)
                 {
@@ -421,19 +427,19 @@ void control::waitForClient()
 
                 }
                 string Session((char *)cu.body, SessionLength);
-                l.writeLog(Log::INFO, string("session:")+Session+" socket:"+ to_string(sS.at(Session)));
+                if(sS.find(Session) == sS.end())
+                {
+                    l.writeLog(Log::ERROR, "Sign in First!!!!");
+                    continue;
+                }
                 // ´«¸ø Client ¶Ë
                 write(sS.at(Session), &cu.header, sizeof(u));
                 write(sS.at(Session), cu.body, u.len);
+                l.writeLog(Log::INFO, string("session:")+Session+" socket:"+ to_string(sS.at(Session)));
                 delete (char *)cu.body;
                 
+                BufferQueue.pop();
                 l.writeLog(Log::INFO, "Write Success packageType:"+to_string(cu.header.p));
-            }
-            else if (candidateSockEvents & EPOLLHUP | candidateSockEvents & EPOLLERR)
-            {
-                EpollDel(epfd, candidateSock);
-
-                l.writeLog(Log::WARNING, "Delete Epollhup socket");
             }
             else
             {
