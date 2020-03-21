@@ -1,3 +1,45 @@
-Sat Mar 21 05:33:06 2020 [INFO]: mysql connect sucessful
-Sat Mar 21 05:33:06 2020 [INFO]: open fifo success
-Sat Mar 21 05:33:06 2020 [INFO]: epoll events create success
+Sat Mar 21 10:11:43 2020 [INFO]: mysql connect sucessful
+Sat Mar 21 10:11:43 2020 [INFO]: open fifo success
+Sat Mar 21 10:11:43 2020 [INFO]: epoll events create success
+Sat Mar 21 10:11:48 2020 [INFO]: [Login] IP:192.168.80.88 Username:test
+Sat Mar 21 10:11:48 2020 [INFO]: [Login Success]
+Sat Mar 21 10:11:48 2020 [INFO]: [Mkdir Req] Uid:2, DirName:my_first_dir, Path:/
+Sat Mar 21 10:11:48 2020 [INFO]: [Mkdir Failed] ALREADY_HAS 
+Sat Mar 21 10:11:48 2020 [INFO]: [SYN Req] Uid:2, path:/
+Sat Mar 21 10:11:48 2020 [INFO]: [SYN Req Success]
+Sat Mar 21 10:11:48 2020 [INFO]: write SYNPushbody
+Sat Mar 21 10:11:48 2020 [INFO]: send SYNPUSH
+Sat Mar 21 10:11:54 2020 [INFO]: [MOVE Req] Uid:2, filename:first_file, path:/, filenameTo:first_file, pathTo:/first_dir
+Sat Mar 21 10:11:54 2020 [INFO]: [MOVE Success]
+Sat Mar 21 10:11:54 2020 [INFO]: [COPY Req] Uid:2, filename:second_file, path:/, filenameTo:second_file.bak, pathTo:/
+Sat Mar 21 10:11:54 2020 [INFO]: [COPY Success]
+Sat Mar 21 10:11:54 2020 [INFO]: [DELETE Req] Uid:2, filename:second_file.bak, path:/
+Sat Mar 21 10:11:54 2020 [INFO]: [DELETE Success]
+Sat Mar 21 10:13:24 2020 [INFO]: [Login] IP:192.168.80.88 Username:test
+Sat Mar 21 10:13:24 2020 [INFO]: [Login Success]
+Sat Mar 21 10:13:25 2020 [INFO]: [Mkdir Req] Uid:2, DirName:my_first_dir, Path:/
+Sat Mar 21 10:13:25 2020 [INFO]: [Mkdir Failed] ALREADY_HAS 
+Sat Mar 21 10:13:25 2020 [INFO]: [SYN Req] Uid:2, path:/
+Sat Mar 21 10:13:25 2020 [INFO]: [SYN Req Success]
+Sat Mar 21 10:13:25 2020 [INFO]: write SYNPushbody
+Sat Mar 21 10:13:25 2020 [INFO]: send SYNPUSH
+Sat Mar 21 10:13:31 2020 [INFO]: [MOVE Req] Uid:2, filename:first_file, path:/, filenameTo:first_file, pathTo:/first_dir
+Sat Mar 21 10:13:31 2020 [INFO]: [MOVE Success]
+Sat Mar 21 10:13:31 2020 [INFO]: [COPY Req] Uid:2, filename:second_file, path:/, filenameTo:second_file.bak, pathTo:/
+Sat Mar 21 10:13:31 2020 [INFO]: [COPY Success]
+Sat Mar 21 10:13:31 2020 [INFO]: [DELETE Req] Uid:2, filename:second_file.bak, path:/
+Sat Mar 21 10:13:31 2020 [INFO]: [DELETE Success]
+Sat Mar 21 10:13:45 2020 [INFO]: [Login] IP:192.168.80.88 Username:test
+Sat Mar 21 10:13:45 2020 [INFO]: [Login Success]
+Sat Mar 21 10:13:45 2020 [INFO]: [Mkdir Req] Uid:2, DirName:my_first_dir, Path:/
+Sat Mar 21 10:13:45 2020 [INFO]: [Mkdir Failed] ALREADY_HAS 
+Sat Mar 21 10:13:45 2020 [INFO]: [SYN Req] Uid:2, path:/
+Sat Mar 21 10:13:45 2020 [INFO]: [SYN Req Success]
+Sat Mar 21 10:13:45 2020 [INFO]: write SYNPushbody
+Sat Mar 21 10:13:45 2020 [INFO]: send SYNPUSH
+Sat Mar 21 10:13:52 2020 [INFO]: [MOVE Req] Uid:2, filename:first_file, path:/, filenameTo:first_file, pathTo:/first_dir
+Sat Mar 21 10:13:52 2020 [INFO]: [MOVE Success]
+Sat Mar 21 10:13:52 2020 [INFO]: [COPY Req] Uid:2, filename:second_file, path:/, filenameTo:second_file.bak, pathTo:/
+Sat Mar 21 10:13:52 2020 [INFO]: [COPY Success]
+Sat Mar 21 10:13:52 2020 [INFO]: [DELETE Req] Uid:2, filename:second_file.bak, path:/
+Sat Mar 21 10:13:52 2020 [INFO]: [DELETE Success]

@@ -4,7 +4,9 @@
 struct SYNPushBody
 {
     char Session[SessionLength];
-    bool isFile;
+    
+    uint32_t isFile;
+    uint32_t id;
+    
     char name[nameLength];
-    uint16_t id;
 };

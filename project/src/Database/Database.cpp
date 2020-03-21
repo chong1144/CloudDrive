@@ -720,7 +720,8 @@ int Database::do_mysql_cmd(UniformHeader h)
         //从数据库找该用户
         uid_pwd = get_uid_pwd_by_uname(body->Username);
         user_pwd = uid_pwd.second;
-        strcpy(res->Session,"");
+        //strcpy(res->Session,"");
+        memset(res->Session,0,sizeof(res->Session));
 
         //用户不存在
         if(user_pwd == "NULL")
@@ -790,6 +791,7 @@ int Database::do_mysql_cmd(UniformHeader h)
             uid_pwd = get_uid_pwd_by_uname(body->Username);
             //cout<<uid_pwd.first<<" "<<uid_pwd.second<<endl;
             //给session赋值
+            memset(res->Session, 0, sizeof(res->Session));
             strcpy(res->Session,uid_pwd.first.c_str());
 
             log.writeLog(Log::INFO,"[Register Success]");
@@ -831,6 +833,7 @@ int Database::do_mysql_cmd(UniformHeader h)
 
          //生成返回包的身
         FileInfoBody *res = new FileInfoBody[1];
+        memset(res->md5,0,sizeof(res->md5));
         strcpy(res->md5,body->MD5);
     
         
@@ -887,6 +890,7 @@ int Database::do_mysql_cmd(UniformHeader h)
         res_header_queue.push(res_header);
         
         MkdirRespBody *res = new MkdirRespBody[1];
+        memset(res->Session,0,sizeof(res->Session));
         strcpy(res->Session,body->Session);
         
 
@@ -923,6 +927,7 @@ int Database::do_mysql_cmd(UniformHeader h)
 
          //生成返回包的身
         SYNRespBody *res = new SYNRespBody[1];
+        memset(res->Session,0,sizeof(res->Session));
         strcpy(res->Session,body->Session);
 
         log.writeLog(Log::INFO, "[SYN Req] Uid:"+string(body->Session)+", path:"+string(body->path));
@@ -940,17 +945,29 @@ int Database::do_mysql_cmd(UniformHeader h)
         //将包加入写队列
         res_queue.push(res);
 
+        res_header.len = sizeof(SYNPushBody);
+        res_header.p = PackageType::SYN_PUSH;
+
         int i = 0;
         while(!children.empty())
         {
+            UniformHeader header;
+            header.len = sizeof(SYNPushBody);
+            header.p = PackageType::SYN_PUSH;
+            res_header_queue.push(header);
+
             pair<string,string> filename_isdir = children.back();
             children.pop_back();
             SYNPushBody *p = new SYNPushBody[1];
             p->id = i++;
+            memset(p->Session,0,sizeof(p->Session));
             strcpy(p->Session,body->Session);
+            memset(p->name,0,sizeof(p->name));
             strcpy(p->name,filename_isdir.first.c_str());
             p->isFile = !atoi(filename_isdir.second.c_str());
             res_queue.push(p);
+
+            log.writeLog(Log::INFO,"write SYNPushbody");
         }
 
         delete body;
@@ -968,10 +985,12 @@ int Database::do_mysql_cmd(UniformHeader h)
 
          //生成返回包的身
         CopyRespBody *res = new CopyRespBody[1];
+        memset(res->Session,0,sizeof(res->Session));
         strcpy(res->Session,body->Session);
 
         log.writeLog(Log::INFO, "[COPY Req] Uid:"+string(body->Session)+", filename:"+string(body->fileName)+", path:"+string(body->path)+", filenameTo:"+string(body->fileNameTo)+", pathTo:"+string(body->pathTo));
 
+        
 
         if(Files_Copy(body->Session,body->fileName,body->path,body->fileNameTo,body->pathTo))
         {
@@ -1003,6 +1022,7 @@ int Database::do_mysql_cmd(UniformHeader h)
 
          //生成返回包的身
         MoveRespBody *res = new MoveRespBody[1];
+        memset(res->Session,0,sizeof(res->Session));
         strcpy(res->Session,body->Session);
 
         log.writeLog(Log::INFO, "[MOVE Req] Uid:"+string(body->Session)+", filename:"+string(body->fileName)+", path:"+string(body->path)+", filenameTo:"+string(body->fileNameTo)+", pathTo:"+string(body->pathTo));
@@ -1036,6 +1056,7 @@ int Database::do_mysql_cmd(UniformHeader h)
 
          //生成返回包的身
         DeleteRespBody *res = new DeleteRespBody[1];
+        memset(res->Session,0,sizeof(res->Session));
         strcpy(res->Session,body->Session);
 
         log.writeLog(Log::INFO, "[DELETE Req] Uid:"+string(body->Session)+", filename:"+string(body->fileName)+", path:"+string(body->path));
@@ -1146,17 +1167,18 @@ int Database::send_back(UniformHeader header)
         SYNRespBody *body = (SYNRespBody*)res_queue.front();
         write(fifo_dtoc,&header,sizeof(header));
         write(fifo_dtoc,body,sizeof(SYNRespBody));
-        int i=0;
-        for(i=0;i<body->childNum;i++)
-        {
-            res_queue.pop();
-            SYNPushBody *p = (SYNPushBody *)res_queue.front();
-            write(fifo_dtoc,p,sizeof(SYNPushBody));
-            delete p;
-        }
-
+        
         delete body;
     }
+    else if(header.p == PackageType::SYN_PUSH)
+    {
+        SYNPushBody *body = (SYNPushBody *)res_queue.front();
+        write(fifo_dtoc,&header,sizeof(header));
+        write(fifo_dtoc,body,sizeof(SYNPushBody));
+        log.writeLog(Log::INFO,"send SYNPUSH");
+        delete body;
+    }
+
     else if (header.p == PackageType::MKDIR_RES)
     {
         MkdirRespBody *body = (MkdirRespBody*)res_queue.front();
@@ -1176,11 +1198,5 @@ int Database::send_back(UniformHeader header)
         
     }
 
-    
-    
-    
-    
-
-    
     res_queue.pop();
 }

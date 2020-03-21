@@ -197,6 +197,7 @@ void control::waitForClient()
 
     queue<uint32_t> sockQueue;
     socketSession sS;
+    Sessionsocket Ss;
     UniformHeader u;
     int readres;
     char *packet = new char[packetLength];
@@ -240,7 +241,7 @@ void control::waitForClient()
                     string ip;
                     uint16_t port;
                     GetIPPort(accres, ip, port);
-                    string InfoContent = "Connect with " + ip + ":" + to_string(port);
+                    string InfoContent = "Connect with " + ip + ":" + to_string(port) + " and Socket is " + to_string(accres);
                     l.writeLog(Log::INFO, InfoContent);
 
                     sockQueue.push(accres);
@@ -281,10 +282,19 @@ void control::waitForClient()
                 // 建立 Session --- sock 映射表
                 if (u.p == PackageType::SIGNIN_RES || u.p == PackageType::SIGNUP_RES)
                 {
-                    string InfoContent = to_string(sockQueue.front()) + "'s Session get " + string(Session);
-                    l.writeLog(Log::INFO, InfoContent);
-                    sS.insert({Session, sockQueue.front()});
-                    sockQueue.pop();
+                    int *Code = (int *)&packet[SessionLength];
+                    if (*Code == 0)
+                    {
+                        string InfoContent = to_string(sockQueue.front()) + "'s Session get " + Session;
+                        l.writeLog(Log::INFO, InfoContent);
+                        sS.insert({Session, sockQueue.front()});
+                        Ss.insert({sockQueue.front(), Session});
+                        sockQueue.pop();
+                    }
+                    else 
+                    {
+                        l.writeLog(Log::WARNING, "Signin or Signup failed");
+                    }
                 }
 
                 cu.header = u;
@@ -304,7 +314,8 @@ void control::waitForClient()
                     GetIPPort(candidateSock, ip, port);
                     string ErrorContent = "disconnect with client " + ip + ":" + to_string(port);
                     l.writeLog(Log::ERROR, ErrorContent);
-
+                    sS.erase(Ss.at(candidateSock));
+                    Ss.erase(candidateSock);
                     EpollDel(epfd, candidateSock);
                 }
                 else if (readres != sizeof(u))
@@ -312,6 +323,7 @@ void control::waitForClient()
                     // 罕见情况
                     l.writeLog(Log::WARNING, "rare situation");
                 }
+                string InfoContent;
 
                 switch (u.p)
                 {
@@ -339,6 +351,8 @@ void control::waitForClient()
                 case PackageType::MOVE:
                 case PackageType::DELETE:
                 case PackageType::MKDIR:
+                    //InfoContent = to_string(u.p) + " : " + to_string(u.len);
+                    //l.writeLog(Log::INFO, InfoContent);
                     write(this->fifo_ctod, &u, sizeof(u));
 
                     readres = read(candidateSock, packet, u.len);
@@ -348,7 +362,16 @@ void control::waitForClient()
                         l.writeLog(Log::WARNING, "rare situation");
                         exit(-1);
                     }
-                    write(this->fifo_ctod, &packet, u.len);
+
+                    write(this->fifo_ctod, packet, u.len);
+
+                    if (u.p == PackageType::SIGNUP)
+                    {
+                        SignupBody *b = (SignupBody *)packet;
+                        InfoContent.clear();
+                        InfoContent = string("ip:") + b->IP + " username:" + b->Username + "psw:" + b->Password;
+                        l.writeLog(Log::INFO, InfoContent);
+                    }
 
                     break;
 
@@ -365,13 +388,46 @@ void control::waitForClient()
                 cu = BufferQueue.front();
                 BufferQueue.pop();
 
+                if(cu.header.p == SIGNIN_RES || cu.header.p == SIGNUP_RES)
+                {
+                    int *Code = (int *)&(((char *)cu.body)[SessionLength]);
+                    if(*Code != 0)
+                    {
+                        int temp = sockQueue.front();
+                        write(temp, &cu.header, sizeof(u));
+                        write(temp, cu.body, u.len);
+                        delete (char *)cu.body;
+
+                        string ip;
+                        uint16_t port;
+                        GetIPPort(temp, ip, port);
+                        string WARContent = "Fail to signup or signin with client " + ip + ":" + to_string(port); 
+                        l.writeLog(Log::WARNING, WARContent);
+                        
+                        sockQueue.pop();
+                        EpollDel(epfd, temp);
+                        close(temp);
+                        
+                        continue;
+                    }
+
+                }
+
+                if(cu.header.p == PackageType::SYN_PUSH)
+                {
+                    SYNPushBody* spb = (SYNPushBody *)cu.body;
+                    l.writeLog(Log::INFO, to_string(cu.header.len) + "Session: " 
+                    + spb->Session + " Name: " + spb->name + " isFile: " + to_string(spb->isFile) + " id: " + to_string(spb->id));
+
+                }
                 string Session((char *)cu.body, SessionLength);
+                l.writeLog(Log::INFO, string("session:")+Session+" socket:"+ to_string(sS.at(Session)));
                 // 传给 Client 端
                 write(sS.at(Session), &cu.header, sizeof(u));
                 write(sS.at(Session), cu.body, u.len);
                 delete (char *)cu.body;
-
-                l.writeLog(Log::INFO, "Write Success");
+                
+                l.writeLog(Log::INFO, "Write Success packageType:"+to_string(cu.header.p));
             }
             else if (candidateSockEvents & EPOLLHUP | candidateSockEvents & EPOLLERR)
             {

@@ -27,6 +27,7 @@ using std::vector;
 
 // Session --- sock
 using socketSession = map<string, uint32_t>;
+using Sessionsocket = map<uint32_t, string>;
 
 const uint16_t packetLength = 2048;
 
