@@ -283,6 +283,12 @@ int Database::Files_Insert(string Uid,string Filename,string path,string hash,bo
 
 int Database::Files_Delete(string Uid,string Filename,string path)
 {
+    string hash = Files_Get_Hash(Uid,Filename,path);
+    if(hash == "NULL")
+    {
+        return 0;
+    }
+
     string cmd = "delete  from Files where Uid="+ \
     generate_string(Uid)+" and "+\
     "Filename="+generate_string(Filename)+" and "+\
@@ -306,6 +312,10 @@ int Database::Files_Copy(string Uid,string Filename,string path,string FilenameT
     string hash;
 
     hash = Files_Get_Hash(Uid,Filename,path);
+    if(hash == "NULL")
+    {
+        return 0;
+    }
     bool isDir = Files_Isdir(Uid,Filename,path);
 
     FileIndex_Refinc(hash);
@@ -316,6 +326,13 @@ int Database::Files_Copy(string Uid,string Filename,string path,string FilenameT
 
 int Database::Files_Move(string Uid,string Filename,string path,string FilenameTo ,string pathTo)
 {
+
+    string hash = Files_Get_Hash(Uid,Filename,path);
+    if(hash == "NULL")
+    {
+        return 0;
+    }
+
     string cmd = string("update Files set ")
     +" Filename="+generate_string(FilenameTo)+","\
     + "Path="+generate_string(pathTo)

@@ -394,8 +394,8 @@ void control::waitForClient()
                     if(*Code != 0)
                     {
                         int temp = sockQueue.front();
-                        write(temp, &cu.header, sizeof(u));
-                        write(temp, cu.body, u.len);
+                        write(temp, &cu.header, sizeof(cu.header));
+                        write(temp, cu.body, cu.header.len);
                         delete (char *)cu.body;
 
                         string ip;
